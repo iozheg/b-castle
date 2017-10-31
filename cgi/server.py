@@ -35,8 +35,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):        
         """Incoming messages handler.
         
-        when we receive some message we want some message handler..
-        for this example i will just print message to console
+        For received message create new thread.
         """
         log.received_message(self.id, message)
 
