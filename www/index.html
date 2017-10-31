@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+    <head>
+        <title>canvasExample</title>
+		<meta charset="utf-8" />
+		<script src="Box2d.min.js"></script>
+		<script src="bodyClass.js"></script>
+		<script src="gameClass.js"></script>
+		<script src="physicsClass.js"></script>
+		<script src="shootClass.js"></script>
+		<script src="shellClass.js"></script>
+		<script src="cannonballClass.js"></script>
+		<script src="lasergunClass.js"></script>
+		<script src="castleClass.js"></script>
+		<script src="terrainClass.js"></script>
+		<script src="resourceLoader.js"></script>
+		<script src="animationClass.js"></script>
+		<script src="playerClass.js"></script>
+		<script src="userinterfaceClass.js"></script>
+		<script src="connectorClass.js"></script>
+		<script src="messagehandlerClass.js"></script>
+		<script src="loadinganimationClass.js"></script>
+		<script src="notificationClass.js"></script>
+		<script src="jquery-2.1.4.min.js"></script>
+		<script src="md5-min.js"></script>
+		<script src="conf.js"></script>
+		<link rel="stylesheet" type="text/css" href="loading.css" />
+		<link rel="stylesheet" type="text/css" href="style.css" />
+		<link href='https://fonts.googleapis.com/css?family=Press+Start+2P&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+		
+    </head>
+    <body>
+		<div id="container">
+			<canvas id="b2dCanvas" width="1300" height="700"></canvas>
+			<div id="helloDialog">
+				<form id="menu" role="form"  style="text-align: center; top: 0px;">
+					<font style="font-size: 12px;">Welcome to <br><br> <font style="font-size: 18px;">B-Castle</font></font>
+					<input id="P1Nick" placeholder="Nick">
+					<div>
+						<button id="battle_button">Connecting...</button>
+					</div>
+				</form>
+			</div>
+		</div>	
+		<script>
+			var conn; 					//here is connection variable
+			var game; 					//main game variable
+			var players = [];
+			var currentPlayer = "player1";
+			var gameState = "stop";
+			var bodiesForRemove = []; 	//array of box2d bodies, which we must remove in next frame
+			var animations = [];
+			var translation = 0;		//when screen/window width less then scene, we can move camera left-right. This variable is value of current offset
+			var strength = 0;			//shot strength
+			var shootButtonPressed = false;
+			var resources = []; 		//images
+			var gameinfo = {
+				rId: 0,					//"unique" ID
+				opponent_id: null,
+				opponent: "player1",
+				you: "player2",
+				turn: false,			//whose turn. true - your, false - opponent's
+				yourAimpointerAngle: 0,
+				opponentAimpointerAngle: 0,
+				windforce: 0,
+				terrain: 0,
+				status: 0
+			};
+			window.onload = function() {
+				//calculate browser window width, calculate max camera translation in right side, specify canvas width
+				var windowWidth = window.innerWidth || document.documentElement.clientWidth;
+				configuration.cameraLimits.right = (windowWidth - configuration.gameSceneWidth)/configuration.scale;
+				if(configuration.cameraLimits.right >= 0)
+					configuration.cameraLimits.right = -1;
+				var bodyMargin = 8 + 8;
+				document.getElementById("b2dCanvas").setAttribute("width", windowWidth - bodyMargin);
+				document.getElementById("b2dCanvas").style.width = windowWidth - bodyMargin + "px";
+				document.getElementById("b2dCanvas").style.height = "700px";
+				
+				//establish websocket connection, load images
+				conn = new Connector(gameinfo, document.getElementById("helloDialog"));
+				loadResources();
+				loading = new LoadingAnimation(resources["loading"]); //using css animation
+			};
+			
+			window.onresize = function(){
+				//do the same as onload if window was resized
+				var windowWidth = window.innerWidth || document.documentElement.clientWidth;
+				configuration.cameraLimits.right = (windowWidth - configuration.gameSceneWidth)/configuration.scale;
+				if(configuration.cameraLimits.right >= 0)
+					configuration.cameraLimits.right = -1;
+			//	log(configuration.cameraLimits.right);
+				bodyMargin = 8 + 8;
+				document.getElementById("b2dCanvas").setAttribute("width", windowWidth - bodyMargin);
+				document.getElementById("b2dCanvas").style.width = windowWidth - bodyMargin + "px";
+				document.getElementById("b2dCanvas").style.height = "700px";
+				
+				translation = translation < configuration.cameraLimits.right ? configuration.cameraLimits.right : translation;
+			}
+			
+			/*
+			start game algorithm:
+			1. After page loaded, trying make connection to the server through websocket (button text - "Connecting...")
+			2. If connection successfull, player registered automaticaly, button has text "Battle!", if not - "Reconnect" (reloads page)
+			3. When "Battle!" pressed, page sends command to search an opponent
+			4. If search is successfull, game started
+			*/
+			function startgame(command){
+			//	p1nick = document.getElementById("P1Nick").value;	//get nicks. if empty - player1 & player2
+				
+			//	p2nick = document.getElementById("P2Nick").value;
+			/*	if(command != "send"){
+					document.getElementById("helloDialog").style.display = "none";	//hide menu
+					document.getElementById("pauseDialog").style.display = "none";	//hide menu
+					document.getElementById("fade").style.display = "none";
+				}*/
+				if(command == "start"){	//if game not started, then start 
+					loading.hide(document.getElementById("helloDialog"));
+					
+					document.getElementById("helloDialog").style.display = "none";	//hide menu
+					document.getElementById("fade").style.display = "none";
+					gameState = "running";	//playing - game was started, stop - game wasn't started, pause - game was paused after start by ESC key
+					game = new Game(document.getElementById("b2dCanvas"), configuration.scale, configuration.cameraLimits, configuration.maxStrength); //start game function
+				}
+			/*	else if(command == "resume"){	//if game was paused, then start
+					gameState = "running";
+					requestAnimationFrame(gameLoop);	//continue game function - request next animation
+				}*/
+			/*	else if(command == "restart"){
+					game.stop();
+					gameState = "running";	//playing - game was started, stop - game wasn't started, pause - game was paused after start by ESC key
+					game = new Game(); //start game function
+				}*/
+				else if (command == "send"){
+					gameinfo.plnick = document.getElementById("P1Nick").value;
+					conn.send("search");
+					gameinfo.status = 3;
+					loading.show(document.getElementById("helloDialog"));
+					b = document.getElementById("battle_button");
+					b.innerHTML = "Stop searching";
+					b.onclick = function(){
+						b.innerHTML = "Battle!";
+						conn.send("stopsearch");
+						loading.hide(document.getElementById("helloDialog"));
+						b.onclick = function(){
+							startgame("send");
+							return false;
+						}
+						return false;
+					}
+				}
+			};
+			
+			//starts stop game procedure
+			function stopgame(reason){
+				if(game){
+					game.stop();
+					game = null;
+				}
+				loading.hide(document.getElementById("helloDialog"));
+				b = document.getElementById("battle_button");
+				if(reason == "connection"){ //if reason of game stop - connection with server lost
+					b.innerHTML = "Reconnect";
+					b.onclick = function(){
+						location.reload();
+						return false;
+					}
+				}
+				else{	//if reason - any other
+					b.innerHTML = "Battle!";
+					b.onclick = function(){
+						startgame("send");
+						return false;
+					}
+				}
+				document.body.removeChild(document.getElementsByClassName("ingamemenu")[0]);
+				document.getElementById("helloDialog").style.display = "block";
+				document.getElementById("fade").style.display = "block";
+			}
+			function log(message){
+				if(message.length > 100)
+					message = message.slice(0, 100) + "...";
+				document.getElementById("info").innerHTML += message + "<br/>";
+			}
+		</script>
+		
+	<!-- 	<div id="pauseDialog" style="display: none; position: absolute; width: 300px; background-color: white; margin: 100px 600px; border-radius: 15px; padding: 5px 15px 5px 15px; z-index: 4">
+			<form id="menu" role="form">
+				<div align="center">
+					<h1>B-Castle</h1>
+				</div>
+				
+				<div>
+					<button id="resume" style="width: 100%; height: 30px; padding: 6px 12px;border: 1px solid #ccc; border-radius: 5px; margin-bottom: 10px;" onclick="startgame('resume'); return false;">Resume</button>
+					<button id="start" style="width: 100%; height: 30px; padding: 6px 12px;border: 1px solid #ccc; border-radius: 5px; margin-bottom: 10px;" onclick="startgame('restart'); return false;">New game</button>
+				</div>
+			</form>
+		</div> -->
+	
+		
+		 <div id="info" style="display: none; width: 700px; height: 200px; border: 1px solid #ccc; overflow:auto;"></div>
+   
+	<div id="fade">	</div>
+	</body>
+</html>
