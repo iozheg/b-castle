@@ -243,7 +243,7 @@ class ClientHandler:
 
 
 def rand(minv, maxv):
-    """generate random value between minv and maxv"""
+    """Generate random value between minv and maxv"""
     
     return random.random() * (maxv - minv) + minv
 
