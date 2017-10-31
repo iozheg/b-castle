@@ -5,9 +5,11 @@ Created on 16 sept. 2015.
 '''
 
 import datetime
-from random import uniform
+from hashlib import md5
+#from random import uniform
 
 from conf import *
+from world import World
 
 class Battle(object):
     '''
@@ -15,9 +17,7 @@ class Battle(object):
     '''
 
 
-    def __init__(self, id, db, player1, player2, terrain):
-        self.id = id
-        self.db = db
+    def __init__(self, player1, player2, world):
         self.p1 = player1
         self.p2 = player2
         self.p1_health = 100
@@ -27,23 +27,51 @@ class Battle(object):
         self.turn = player1
         self.p1_end_turn = False
         self.p2_end_turn = False
-        self.terrain = terrain
+        self.terrain, self.wind_force = world.get_world_params()
+        self.id = md5(
+                str(world.get_short_terrain).encode('utf-8')
+            ).hexdigest()
         self.log = []
         self.status = "active"
         self.number_of_turns = 1
         
-        player1.opponent = player2
-        player2.opponent = player1
-        player1.side = "player1"
-        player2.side = "player2"
-        player1.battle = self
-        player2.battle = self
-        player1.is_ready_for_battle = False
-        player2.is_ready_for_battle = False
+        self.introduce_players()
 
-    def next_turn(self, initiator):
+    def introduce_players(self):
+        self.p1.init_battle(
+            battle=self, 
+            opponent=self.p2,
+            side=:"player1"
+        )
+        self.p2.init_battle(
+            battle=self, 
+            opponent=self.p1,
+            side=:"player2"
+        )
         
-        ''' Handling next turn event. Waiting for "next turn" events from both players, only than change active player. '''
+        ### may be client instance must send messages by it self?
+        self.p1.send_message(
+            '{"type":"search", "opponent_id":{0}, "opponent_nick":{1},\
+             "turn":"yes", "wind_force":{2}, "terrain":{3}}'
+             .format(
+                 self.p2.id, self.p2.nick, self.wind_force, self.terrain
+             )
+        )
+
+        self.p2.send_message(
+            '{"type":"search", "opponent_id":{0}, "opponent_nick":{1},\
+             "turn":"no", "wind_force":{2}, "terrain":{3}}'
+             .format(
+                 self.p1.id, self.p1.nick, self.wind_force, self.terrain
+             )
+        )
+
+    def next_turn(self, initiator):        
+        """ Handling next turn event. 
+        
+        Waiting for "next turn" events from both players, 
+        only than change active player. 
+        """
         
         if self.status != "active":
             return
@@ -74,8 +102,11 @@ class Battle(object):
             
     def shot(self, initiator, data):
         
-        ''' Handling shot event. Active player sends message, than we send it to both players, and they make shoot. '''
+        ''' Handling shot event. 
         
+        Active player sends message, than we send it to both players, 
+        and they make shoot. 
+        '''        
         initiator.ws.send('{"type":"gamemsg", "event":"shot", "player":"' + initiator.side
                     + '", "strength":' + str(data['strength'])
                     + ', "angle":'+ str(data["angle"]) +'}')
