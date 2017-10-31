@@ -18,9 +18,13 @@ class Logger():
 
     @add_datetime
     def ws_closed(self, client_id):
-        print("Websocket is closed: delete player " + client_id)
+        print("Websocket is closed: delete player " + client_id, end='\n')
 
     @add_datetime
     def error(self, error=None, client_id=None, message=""):
-        print("ERROR: {} client: {} {}".format(error, client_id, message))
+        print("ERROR: {} client: {} {}\n".format(error, client_id, message))
+
+    @add_datetime
+    def info(self, message, extra_data=""):
+        print(message, extra_data, end='\n')
         
