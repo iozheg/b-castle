@@ -4,12 +4,13 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import threading
-import datetime
+from datetime import datetime
 import os
 
 from tornado.options import define, options, parse_command_line
 
 import clienthandler
+from logger import Logger
 
 define("port", default=8888, help="run on the given port", type=int)
 
@@ -17,6 +18,8 @@ define("port", default=8888, help="run on the given port", type=int)
 
 # we gonna store clients in dictionary..
 clients = dict()
+# logger
+log = Logger()
 
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -28,30 +31,15 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         self.id = self.get_argument("id")
         self.stream.set_nodelay(True)
         clients[self.id] = {"id": self.id, "object": self}
-        
-     #   print "_".join(_ for _ in clients)
-##        message = "Connected ids: "
-##        for i in clients:
-##            message += str(clients[i]["id"]) + " \n"
-##        self.write_message(message);
 
     def on_message(self, message):        
-        """
+        """Incoming messages handler.
+        
         when we receive some message we want some message handler..
         for this example i will just print message to console
         """
-        print(
-            "{}: Receiving message from {}: {}\n" 
-            .format(
-                datetime.datetime.now().strftime("%H:%M:%S"), 
-                self.id, 
-                message
-            )
-        )
-        ch.db.server_log((
-            "system", 
-            "Receiving message from {}: {}".format(self.id, message)
-        ))
+        log.received_message(self.id, message)
+
         thread = threading.Thread(
             target=ch.message_handler, 
             args=[message, self]
@@ -59,37 +47,28 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         thread.start()
     def send(self, data):
         try:
-            print(
-                "{}: Sending message to {}: {}\n" 
-                .format(
-                    datetime.datetime.now().strftime("%H:%M:%S"), 
-                    self.id, 
-                    data
-                )
-            )
-        #    ch.db.server_log(("system", "Sending message to %s: %s" % (self.id, data)))
             self.write_message(data)
+            log.sent_message(self.id, data)
         except tornado.websocket.WebSocketClosedError:
             ch.remove_player(self.id)
-            print('Websocket is closed: delete player')
-        #    ch.db.server_log(("system", "Websocket is closed: delete player"))
+            log.error(
+                tornado.websocket.WebSocketClosedError,
+                self_id,
+                "Can't send message: connection closed"
+            )
         except tornado.websocket.WebSocketError:
-            print ('Something gone wrong...')
-            ch.db.server_log((
-                "system", 
-                "Something gone wrong with WebSocket"
-            ))
+            log.error(
+                tornado.websocket.WebSocketError,
+                self.id
+            )
     def on_close(self):
-        print ("player {} closed connection".format(self.id))
-        ch.db.server_log((
-            "system", 
-            "player {} closed connection".format(self.id)
-        ))
         if self.id in clients:
             del clients[self.id]
             ch.remove_player(self.id)
+            log.ws_closed(self.id)
             
     def check_origin(self, origin):
+        """Skip CORS check (cross domain)."""
         return True
 
 app = tornado.web.Application([
