@@ -10,8 +10,11 @@ class MessageHandler:
     # 4. gamemsg
     handlers = dict()
 
-    def __init__(self, handlers):
-        self.handlers = handlers
+    def __init__(self,):
+        self.handlers = dict()
+
+    def add_handler(self, type, callback):
+        self.add_handler[type] = callback
 
     def process_message(self, message):
         
@@ -29,6 +32,8 @@ class MessageHandler:
             self.handlers[type](decoded_data)
         except KeyError as e:
             return False #logger action
+
+
 
         try:
             type = decoded_data['type']

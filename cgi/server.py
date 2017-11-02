@@ -9,7 +9,7 @@ import os
 
 from tornado.options import define, options, parse_command_line
 
-import clienthandler
+from game import Game
 from logger import Logger
 
 define("port", default=8888, help="run on the given port", type=int)
@@ -40,7 +40,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         log.received_message(self.id, message)
 
         thread = threading.Thread(
-            target=ch.message_handler, 
+            target=game.handle_message, 
             args=[message, self]
         )
         thread.start()
@@ -49,13 +49,14 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message(data)
             log.sent_message(self.id, data)
         except tornado.websocket.WebSocketClosedError:
-            ch.remove_player(self.id)
+            game.remove_player(self.id)
             log.error(
                 tornado.websocket.WebSocketClosedError,
                 self_id,
                 "Can't send message: connection closed"
             )
         except tornado.websocket.WebSocketError:
+            game.remove_player(self.id)
             log.error(
                 tornado.websocket.WebSocketError,
                 self.id
@@ -63,7 +64,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         if self.id in clients:
             del clients[self.id]
-            ch.remove_player(self.id)
+            game.remove_player(self.id)
             log.ws_closed(self.id)
             
     def check_origin(self, origin):
@@ -76,7 +77,7 @@ app = tornado.web.Application([
 ])
 
 if __name__ == '__main__':
-    ch = clienthandler.ClientHandler()
+    game = Game()
 
     parse_command_line()
     app.listen(options.port)
