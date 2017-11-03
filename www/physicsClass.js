@@ -62,20 +62,20 @@ Physics.prototype.terrainCollision = function(cannonball){
 		y: Math.round(pos.y * this.scale)
 	}
 //document.getElementById("info").innerHTML = "no calc";
-	if(collPos.x <= 0 || collPos.x >= game.terrain.width || collPos.y <=0 || collPos.y >= game.terrain.height)
+	if(collPos.x <= 0 || collPos.x >= gamemanager.game.terrain.width || collPos.y <=0 || collPos.y >= gamemanager.game.terrain.height)
 		return;
 //document.getElementById("info").innerHTML = "calc";		
 	for(x = -1 * cannonRadius + collPos.x; x <= cannonRadius + collPos.x; x++){
 		y = collPos.y + (Math.sqrt(Math.pow(cannonRadius, 2) - Math.pow(x - (collPos.x), 2)))>>0; //y0 + sqrt(R^2 - (x-x0)^2)
 		y2 = collPos.y - (Math.sqrt(Math.pow(cannonRadius, 2) - Math.pow(x - (collPos.x), 2)))>>0;			//y0 - sqrt(R^2 - (x-x0)^2)
-		index = y * game.terrain.rowCapacity + x * 4;
-		if(game.terrain.imgData.data[index +3] == 255){
+		index = y * gamemanager.game.terrain.rowCapacity + x * 4;
+		if(gamemanager.game.terrain.imgData.data[index +3] == 255){
 			contact = true;
 			break;
 		}
 		
-		index = y2 * game.terrain.rowCapacity + x * 4;
-		if(game.terrain.imgData.data[index +3] == 255){
+		index = y2 * gamemanager.game.terrain.rowCapacity + x * 4;
+		if(gamemanager.game.terrain.imgData.data[index +3] == 255){
 			contact = true;
 			break;
 		}
@@ -91,14 +91,14 @@ Physics.prototype.terrainCollision = function(cannonball){
 		y2 = collPos.y - (Math.sqrt(Math.pow(blastRadius, 2) - Math.pow(x - (collPos.x), 2)))>>0;//y0 - sqrt(R^2 - (x-x0)^2)
 		
 		
-		index = y * game.terrain.rowCapacity + x * 4;
-		index2 = y2 * game.terrain.rowCapacity + x * 4;
-		if(index < y * game.terrain.rowCapacity)
+		index = y * gamemanager.game.terrain.rowCapacity + x * 4;
+		index2 = y2 * gamemanager.game.terrain.rowCapacity + x * 4;
+		if(index < y * gamemanager.game.terrain.rowCapacity)
 			continue;
 
 		for(i = index2; i <=index; ){
-			game.terrain.imgData.data[i +3] = 0;
-			i = i + game.terrain.rowCapacity;
+			gamemanager.game.terrain.imgData.data[i +3] = 0;
+			i = i + gamemanager.game.terrain.rowCapacity;
 		}
 			
 	}

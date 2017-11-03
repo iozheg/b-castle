@@ -34,6 +34,6 @@ Cannonball.prototype.draw = function (physics) {
 Cannonball.prototype.contact = function(contact, impulse){
 	window.bodiesForRemove.push(this);
 	window.animations.push(new Animation("blast", this.body.GetPosition(), 3, 3, 13, false));
-	setTimeout(function(){game.turnEnd()}, 500);
+	setTimeout(function(){gamemanager.game.turnEnd()}, 500);
 }
 

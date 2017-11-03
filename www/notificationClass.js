@@ -34,7 +34,7 @@ SimpleNotification.prototype.show = function(message, time, fontSize){
 	this.message = message;
 	this.fontSize = (typeof fontSize == "undefined" ? 4 : fontSize);
 //	log(this.fontSize);
-	setTimeout(function(){this.game.notification.hide()}, time);
+	setTimeout(function(){gamemanager.game.notification.hide()}, time);
 }
 
 SimpleNotification.prototype.hide = function(){

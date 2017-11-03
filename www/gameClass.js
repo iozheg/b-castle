@@ -34,7 +34,7 @@ var Game = function(canvas, scale, cameraLimits, maxStrength){
 
 Game.prototype.turnEnd = function(){
 	/*send message to the server that turn has ended*/
-	conn.send("gamemsg", "nextturn");
+	gamemanager.messageHandler.sendMessage("gamemsg", "nextturn");
 }
 
 Game.prototype.changePlayer = function (playerIdentity, windforce){
@@ -104,7 +104,7 @@ Game.prototype.setAimPointer = function(playerIdentity, angle){
 }
 
 Game.prototype.shoot = function(playerIdentity, strength, angle){
-	game.timeCounterIsActive = false;	//stop timer after shoot
+	gamemanager.game.timeCounterIsActive = false;	//stop timer after shoot
 	this.shot = new Shoot(this.physics, playerIdentity, strength, angle);
 	
 	//focus camera the shot
@@ -134,8 +134,8 @@ Game.prototype.control = function(){
 				else
 					angle = players[gameinfo.you].getAngle() - players[gameinfo.you].angle.increment_sign * 0.02;
 				
-				conn.send("gamemsg", "aimchange", {"angle":angle});
-				game.setAimPointer(gameinfo.you, angle);
+				gamemanager.messageHandler.sendMessage("gamemsg", "aimchange", {"angle":angle});
+				gamemanager.game.setAimPointer(gameinfo.you, angle);
 				break;
 			case 40:
 				if(gameinfo.you != currentPlayer)
@@ -145,8 +145,8 @@ Game.prototype.control = function(){
 				else
 					angle = players[gameinfo.you].getAngle() + players[gameinfo.you].angle.increment_sign * 0.02;
 				
-				conn.send("gamemsg", "aimchange", {"angle": + angle});
-				game.setAimPointer(gameinfo.you, angle);
+				gamemanager.messageHandler.sendMessage("gamemsg", "aimchange", {"angle": + angle});
+				gamemanager.game.setAimPointer(gameinfo.you, angle);
 				break;
 			case 37:
 				translation += 1;
@@ -158,25 +158,12 @@ Game.prototype.control = function(){
 				if(translation < configuration.cameraLimits.right)
 					translation = configuration.cameraLimits.right;
 				break;
-/* 			case 27:
-				if(gameState == "running"){
-					gameState = "pause";
-					document.getElementById("pauseDialog").style.display = "block";	//show menu
-					document.getElementById("fade").style.display = "block";
-				}
-				else if(gameState == "pause"){
-					gameState = "running";
-					document.getElementById("pauseDialog").style.display = "none";	//show menu
-					document.getElementById("fade").style.display = "none";
-					requestAnimationFrame(gameLoop);	//continue game function - request next animation
-				}
-				break; */
 		}
 	}
 	this.shootControl = function(e){
 		if(e.keyCode == 32 && shootButtonPressed){ //if shoot button was pressed and now released than shoot
 			shootButtonPressed = false;
-			conn.send("gamemsg", "shot", {"strength":strength, "angle":players[gameinfo.you].getAngle()});
+			gamemanager.messageHandler.sendMessage("gamemsg", "shot", {"strength":strength, "angle":players[gameinfo.you].getAngle()});
 			
 			strength = 0;
 		}
@@ -197,9 +184,9 @@ Game.prototype.stop = function(){
 	strength = 0;
 	shootButtonPressed = false;
 	Cannonball.isOnScene = false;
-	var obj = game.physics.world.GetBodyList();
+	var obj = gamemanager.game.physics.world.GetBodyList();
 	while(obj){	//destroy all physical bodies
-		game.physics.world.DestroyBody(obj);
+		gamemanager.game.physics.world.DestroyBody(obj);
 		obj = obj.GetNext();
 	}
 	this.context.clearRect(0,0, this.buffer.width, this.buffer.height);
@@ -214,23 +201,23 @@ window.gameLoop = function() {
 			return;
 		var tm = new Date().getTime();
 		
-		if(game.timeCounterIsActive)
-			game.elapsedTurnTime = tm/1000 - game.turnStartTime;
-		if(game.elapsedTurnTime >= 30){	// check turn timeover
-			conn.send("gamemsg", "turntimeover");
+		if(gamemanager.game.timeCounterIsActive)
+			gamemanager.game.elapsedTurnTime = tm/1000 - gamemanager.game.turnStartTime;
+		if(gamemanager.game.elapsedTurnTime >= 30){	// check turn timeover
+			gamemanager.messageHandler.sendMessage("gamemsg", "turntimeover");
 		}
 			
 		requestAnimationFrame(gameLoop);
-		var dt = (tm - game.lastFrame) / 1000;
+		var dt = (tm - gamemanager.game.lastFrame) / 1000;
 		if(dt > 1/15) { dt = 1/15; }
 		
 		//every frame delete objects that was destroyed
 		while((obj = bodiesForRemove.pop())){
-			game.physics.world.DestroyBody(obj.body);
+			gamemanager.game.physics.world.DestroyBody(obj.body);
 			delete obj;
 		}
 		
-		game.physics.step(dt);
-		game.lastFrame = tm;
-		game.draw();
+		gamemanager.game.physics.step(dt);
+		gamemanager.game.lastFrame = tm;
+		gamemanager.game.draw();
 	};

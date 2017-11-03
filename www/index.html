@@ -6,6 +6,7 @@
 		<script src="Box2d.min.js"></script>
 		<script src="bodyClass.js"></script>
 		<script src="gameClass.js"></script>
+		<script src="gamemanager.js"></script>
 		<script src="physicsClass.js"></script>
 		<script src="shootClass.js"></script>
 		<script src="shellClass.js"></script>
@@ -17,8 +18,8 @@
 		<script src="animationClass.js"></script>
 		<script src="playerClass.js"></script>
 		<script src="userinterfaceClass.js"></script>
-		<script src="connectorClass.js"></script>
-		<script src="messagehandlerClass.js"></script>
+		<script src="connector.js"></script>
+		<script src="messagehandler.js"></script>
 		<script src="loadinganimationClass.js"></script>
 		<script src="notificationClass.js"></script>
 		<script src="jquery-2.1.4.min.js"></script>
@@ -66,6 +67,9 @@
 				terrain: 0,
 				status: 0
 			};
+
+			var errorMessageDiv = document.getElementById("helloDialog");
+
 			window.onload = function() {
 				//calculate browser window width, calculate max camera translation in right side, specify canvas width
 				var windowWidth = window.innerWidth || document.documentElement.clientWidth;
@@ -78,9 +82,10 @@
 				document.getElementById("b2dCanvas").style.height = "700px";
 				
 				//establish websocket connection, load images
-				conn = new Connector(gameinfo, document.getElementById("helloDialog"));
 				loadResources();
-				loading = new LoadingAnimation(resources["loading"]); //using css animation
+				gamemanager = new GameManager(
+					document.getElementById("battle_button")
+				);
 			};
 			
 			window.onresize = function(){
@@ -89,7 +94,6 @@
 				configuration.cameraLimits.right = (windowWidth - configuration.gameSceneWidth)/configuration.scale;
 				if(configuration.cameraLimits.right >= 0)
 					configuration.cameraLimits.right = -1;
-			//	log(configuration.cameraLimits.right);
 				bodyMargin = 8 + 8;
 				document.getElementById("b2dCanvas").setAttribute("width", windowWidth - bodyMargin);
 				document.getElementById("b2dCanvas").style.width = windowWidth - bodyMargin + "px";
@@ -105,78 +109,7 @@
 			3. When "Battle!" pressed, page sends command to search an opponent
 			4. If search is successfull, game started
 			*/
-			function startgame(command){
-			//	p1nick = document.getElementById("P1Nick").value;	//get nicks. if empty - player1 & player2
-				
-			//	p2nick = document.getElementById("P2Nick").value;
-			/*	if(command != "send"){
-					document.getElementById("helloDialog").style.display = "none";	//hide menu
-					document.getElementById("pauseDialog").style.display = "none";	//hide menu
-					document.getElementById("fade").style.display = "none";
-				}*/
-				if(command == "start"){	//if game not started, then start 
-					loading.hide(document.getElementById("helloDialog"));
-					
-					document.getElementById("helloDialog").style.display = "none";	//hide menu
-					document.getElementById("fade").style.display = "none";
-					gameState = "running";	//playing - game was started, stop - game wasn't started, pause - game was paused after start by ESC key
-					game = new Game(document.getElementById("b2dCanvas"), configuration.scale, configuration.cameraLimits, configuration.maxStrength); //start game function
-				}
-			/*	else if(command == "resume"){	//if game was paused, then start
-					gameState = "running";
-					requestAnimationFrame(gameLoop);	//continue game function - request next animation
-				}*/
-			/*	else if(command == "restart"){
-					game.stop();
-					gameState = "running";	//playing - game was started, stop - game wasn't started, pause - game was paused after start by ESC key
-					game = new Game(); //start game function
-				}*/
-				else if (command == "send"){
-					gameinfo.plnick = document.getElementById("P1Nick").value;
-					conn.send("search");
-					gameinfo.status = 3;
-					loading.show(document.getElementById("helloDialog"));
-					b = document.getElementById("battle_button");
-					b.innerHTML = "Stop searching";
-					b.onclick = function(){
-						b.innerHTML = "Battle!";
-						conn.send("stopsearch");
-						loading.hide(document.getElementById("helloDialog"));
-						b.onclick = function(){
-							startgame("send");
-							return false;
-						}
-						return false;
-					}
-				}
-			};
 			
-			//starts stop game procedure
-			function stopgame(reason){
-				if(game){
-					game.stop();
-					game = null;
-				}
-				loading.hide(document.getElementById("helloDialog"));
-				b = document.getElementById("battle_button");
-				if(reason == "connection"){ //if reason of game stop - connection with server lost
-					b.innerHTML = "Reconnect";
-					b.onclick = function(){
-						location.reload();
-						return false;
-					}
-				}
-				else{	//if reason - any other
-					b.innerHTML = "Battle!";
-					b.onclick = function(){
-						startgame("send");
-						return false;
-					}
-				}
-				document.body.removeChild(document.getElementsByClassName("ingamemenu")[0]);
-				document.getElementById("helloDialog").style.display = "block";
-				document.getElementById("fade").style.display = "block";
-			}
 			function log(message){
 				if(message.length > 100)
 					message = message.slice(0, 100) + "...";

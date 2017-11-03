@@ -1,9 +1,10 @@
 var Connector = function(_gameinfo, errorMessageDiv){
 	/*
-		Connector establish websocket connection and sends messages to the server
-		Messagehandler recieves messages from server and handles them
+		Connector establishs websocket connection and sends messages 
+		to the server.
+		Messagehandler recieves messages from server and handles them.
 		
-		errorMessageDiv - where error messages are displayed
+		errorMessageDiv - where error messages are displayed.
 	*/
 	
 	var currentdate = new Date();

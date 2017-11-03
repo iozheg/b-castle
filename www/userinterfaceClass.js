@@ -71,7 +71,7 @@ UserInterface.prototype.draw = function(translation){
 		this.context.save();
 		
 		//show timer
-		var timeLefted = 30 - game.elapsedTurnTime>>0;
+		var timeLefted = 30 - gamemanager.game.elapsedTurnTime>>0;
 		if(timeLefted < 0)
 			timeLefted = 0;
 		this.context.font="36px 'Press Start 2P'";
