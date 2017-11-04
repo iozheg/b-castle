@@ -9,17 +9,17 @@ var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
 var Physics = window.Physics = function(element, scale, maxStrength, windforce) {
 	var gravity = new b2Vec2(0,9.8);
 	this.world = new b2World(gravity, true);
-	this.element = element;
-	this.elementWidth = element.width;
-	this.context = element.getContext("2d");
+	// this.element = element;
+	// this.elementWidth = element.width;
+	// this.context = element.getContext("2d");
 	this.scale = scale || 20;
 	this.dtRemaining = 0;
 	this.stepAmount = 1/100;
-	this.wind = {
-		force: windforce,
-	//	maxForce: 3,
-	//	minForce: -3
-	};
+	// this.wind = {
+	// 	force: windforce,
+	// //	maxForce: 3,
+	// //	minForce: -3
+	// };
 	this.maxStrength = maxStrength;
 };
 
@@ -127,37 +127,24 @@ Physics.prototype.step = function(dt) {
 		strength >= this.maxStrength ? strength = this.maxStrength : strength += 0.3;
 }
 
-Physics.prototype.draw = function(){
+// Physics.prototype.draw = function(){
 	
 
-	this.context.save();
-	this.context.scale(this.scale,this.scale);
+// 	this.context.save();
+// 	this.context.scale(this.scale,this.scale);
 	
-	//show wind direction
-	this.wind.force <= 0 ? direction = resources["windleft"] : direction = resources["windright"];
-	this.context.drawImage(direction, this.elementWidth / (this.scale*2), 3,
-			Math.abs(this.wind.force),
-			0.8);
 			
-	this.context.translate(translation, 0);
 	
-	//draw objects
-	var obj = this.world.GetBodyList();
-	while(obj) {
-		var body = obj.GetUserData();
-		if(body) {
-			body.draw(this, this.context);
-		}
-		obj = obj.GetNext();
-	}
 	
-	//draw animations
-	for(i = 0; i < animations.length; i++){
-		var anim = animations.pop();
-		anim.draw(this.context);
-		if(!anim.stop)
-			delete animations.unshift(anim);
-	}
+// 	//draw objects
+// 	// var obj = this.world.GetBodyList();
+// 	// while(obj) {
+// 	// 	var body = obj.GetUserData();
+// 	// 	if(body) {
+// 	// 		body.draw(this, this.context);
+// 	// 	}
+// 	// 	obj = obj.GetNext();
+// 	// }	
 	  
-	this.context.restore();
-}
+// 	this.context.restore();
+// }

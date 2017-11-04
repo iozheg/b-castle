@@ -48,23 +48,23 @@ var Castle = function(physics, details, playerIdentity, playerNick){
     this.body.CreateFixture(this.fixtureDef);
 }
 
-Castle.prototype.draw = function (physics) {
+Castle.prototype.draw = function (context) {
     var pos = this.body.GetPosition(),
         angle = this.body.GetAngle();
 	
     // Save the context
-    physics.context.save();
+    context.save();
  
     // Translate and rotate
-    physics.context.translate(pos.x, pos.y);
-    physics.context.rotate(angle);
+    context.translate(pos.x, pos.y);
+    context.rotate(angle);
 	
     // Draw the shape outline if the shape has a color
-	physics.context.drawImage(resources["castle"], -this.details.width / 2, -this.details.height / 2,
+	context.drawImage(resources["castle"], -this.details.width / 2, -this.details.height / 2,
 					this.details.width,
 					this.details.height);
  
-    physics.context.restore();
+    context.restore();
 };
 
 Castle.prototype.contact = function(contact, impulse){

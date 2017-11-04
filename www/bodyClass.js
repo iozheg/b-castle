@@ -85,39 +85,39 @@ Body.prototype.definitionDefaults = {
     fixedRotation: false
 };
 
-Body.prototype.draw = function (physics) {
+Body.prototype.draw = function (context) {
     var pos = this.body.GetPosition(),
         angle = this.body.GetAngle();
  
     // Save the context
-	physics.context.save();
+	context.save();
  
     // Translate and rotate
-    physics.context.translate(pos.x, pos.y);
-    physics.context.rotate(angle);
+    context.translate(pos.x, pos.y);
+    context.rotate(angle);
  
  
     // Draw the shape outline if the shape has a color
     if (this.details.color) {
-        physics.context.fillStyle = this.details.color;
+        context.fillStyle = this.details.color;
  
         switch (this.details.shape) {
             case "circle":
-                physics.context.beginPath();
-                physics.context.arc(0, 0, this.details.radius, 0, Math.PI * 2);
-                physics.context.fill();
+                context.beginPath();
+                context.arc(0, 0, this.details.radius, 0, Math.PI * 2);
+                context.fill();
                 break;
             case "polygon":
                 var points = this.details.points;
-                physics.context.beginPath();
-                physics.context.moveTo(points[0].x, points[0].y);
+                context.beginPath();
+                context.moveTo(points[0].x, points[0].y);
                 for (var i = 1; i < points.length; i++) {
-                    physics.context.lineTo(points[i].x, points[i].y);
+                    context.lineTo(points[i].x, points[i].y);
                 }
-                physics.context.fill();
+                context.fill();
                 break;
             case "block":
-                physics.context.fillRect(-this.details.width / 2, -this.details.height / 2,
+                context.fillRect(-this.details.width / 2, -this.details.height / 2,
                 this.details.width,
                 this.details.height);
             default:
@@ -127,7 +127,7 @@ Body.prototype.draw = function (physics) {
  
     // If an image property is set, draw the image.
     if (this.details.image) {
-        physics.context.drawImage(this.details.image, -this.details.width / 2, -this.details.height / 2,
+        context.drawImage(this.details.image, -this.details.width / 2, -this.details.height / 2,
         this.details.width,
         this.details.height);
  
@@ -138,7 +138,7 @@ Body.prototype.draw = function (physics) {
         this.details.radius*2);
 	} */
  
-    physics.context.restore();
+    context.restore();
  
 };
 

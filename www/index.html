@@ -5,8 +5,9 @@
 		<meta charset="utf-8" />
 		<script src="Box2d.min.js"></script>
 		<script src="bodyClass.js"></script>
-		<script src="gameClass.js"></script>
+		<script src="game.js"></script>
 		<script src="gamemanager.js"></script>
+		<script src="graphics.js"></script>
 		<script src="physicsClass.js"></script>
 		<script src="shootClass.js"></script>
 		<script src="shellClass.js"></script>
@@ -69,6 +70,7 @@
 			};
 
 			var errorMessageDiv = document.getElementById("helloDialog");
+			var canvas = document.getElementById("b2dCanvas");
 
 			window.onload = function() {
 				//calculate browser window width, calculate max camera translation in right side, specify canvas width
@@ -77,9 +79,9 @@
 				if(configuration.cameraLimits.right >= 0)
 					configuration.cameraLimits.right = -1;
 				var bodyMargin = 8 + 8;
-				document.getElementById("b2dCanvas").setAttribute("width", windowWidth - bodyMargin);
-				document.getElementById("b2dCanvas").style.width = windowWidth - bodyMargin + "px";
-				document.getElementById("b2dCanvas").style.height = "700px";
+				canvas.setAttribute("width", windowWidth - bodyMargin);
+				canvas.style.width = windowWidth - bodyMargin + "px";
+				canvas.style.height = "700px";
 				
 				//establish websocket connection, load images
 				loadResources();
@@ -95,9 +97,9 @@
 				if(configuration.cameraLimits.right >= 0)
 					configuration.cameraLimits.right = -1;
 				bodyMargin = 8 + 8;
-				document.getElementById("b2dCanvas").setAttribute("width", windowWidth - bodyMargin);
-				document.getElementById("b2dCanvas").style.width = windowWidth - bodyMargin + "px";
-				document.getElementById("b2dCanvas").style.height = "700px";
+				canvas.setAttribute("width", windowWidth - bodyMargin);
+				canvas.style.width = windowWidth - bodyMargin + "px";
+				canvas.style.height = "700px";
 				
 				translation = translation < configuration.cameraLimits.right ? configuration.cameraLimits.right : translation;
 			}
