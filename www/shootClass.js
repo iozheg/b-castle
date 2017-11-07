@@ -1,8 +1,13 @@
 var Shoot = function(physics, playerIdentity, strength, angle){
 
+	let playersPosition = players[playerIdentity].getPointerPosition();
 	this.startPosition = {
-		x: players[playerIdentity].getPointerPosition().x + Math.cos(angle) * 2,
-		y: players[playerIdentity].getPointerPosition().y + Math.sin(angle) * 2
+		x: parseFloat(
+			(playersPosition.x + Math.cos(angle) * 2).toFixed(5)
+		),
+		y: parseFloat(
+			(playersPosition.y + Math.sin(angle) * 2).toFixed(5)
+		)
 	}
 	
 	switch(players[playerIdentity].selectedWeapon){
@@ -10,8 +15,8 @@ var Shoot = function(physics, playerIdentity, strength, angle){
 			this.cannonball = new Cannonball(
 					physics, 
 					{
-						x: this.startPosition .x, 
-						y: this.startPosition .y, 
+						x: this.startPosition.x, 
+						y: this.startPosition.y, 
 						radius: 0.3, 
 						shape: "circle", 
 						kind: "cannonball"
