@@ -10,8 +10,7 @@ var Shell = function(physics, details){
 	this.details = details = details || {};
  
     // Create the definition
-    this.definition = new b2BodyDef();
- 
+    this.definition = new b2BodyDef(); 
     // Set up the definition
     for (var k in this.definitionDefaults) {
         this.definition[k] = details[k] || this.definitionDefaults[k];
@@ -30,8 +29,6 @@ var Shell = function(physics, details){
     for (var l in this.fixtureDefaults) {
         this.fixtureDef[l] = details[l] || this.fixtureDefaults[l];
     }
- 
- 
     details.shape = details.shape || this.defaults.shape;
  
     switch (details.shape) {

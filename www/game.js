@@ -10,6 +10,8 @@ class Game{
         
         this.graphics = graphics
         this.physics = physics;
+
+        this.isShotMade = false;
         
         // Create ground
         new Body(
@@ -93,10 +95,13 @@ class Game{
             translation = configuration.cameraLimits.left;
         else 
             translation = configuration.cameraLimits.right;
+
+        if(isNaN(translation))
+            console.log(translation);
         
         this.turnStartTime = new Date().getTime()/1000; 	// new turn begins
         this.timeCounterIsActive = true;	//activate timer
-        Cannonball.isOnScene = false; 	//no cannonballs on scene
+        this.isShotMade = false; 	//no cannonballs on scene
         gameinfo.windforce = windforce; 	//set wind force
         
         if(gameinfo.you == currentPlayer)
@@ -113,7 +118,7 @@ class Game{
         
         
         //after shot move camera to cannonball
-        if(Cannonball.isOnScene){
+        if(this.isShotMade){
             var currentPosition = this.shot.getCurrentPosition();
             var startPosition = this.shot.getStartPosition();
             
@@ -126,7 +131,7 @@ class Game{
                 )
                 {
                 this.shot.contact();
-                Cannonball.isOnScene = false; //remove cannonball, if it is out of screen
+                this.isShotMade = false; //remove cannonball, if it is out of screen
             }
             
             /*
@@ -143,6 +148,8 @@ class Game{
                 if(translation < configuration.cameraLimits.right)
                     translation = configuration.cameraLimits.right;
             } 
+            if(isNaN(translation))
+                console.log(translation);
         } 
     }
 
@@ -153,12 +160,13 @@ class Game{
     shoot(playerIdentity, strength, angle){
         //stop timer after shoot
         this.timeCounterIsActive = false;
+        this.isShotMade = true;
         this.shot = new Shoot(this.physics, playerIdentity, strength, angle);
         
         //focus camera the shot
-        translation = currentPlayer == "player1" 
-                        ? configuration.cameraLimits.left - 0.01 
-                        : configuration.cameraLimits.right + 0.01;
+        translation = currentPlayer == "player1" ? configuration.cameraLimits.left - 0.01 : configuration.cameraLimits.right + 0.01;
+        if(isNaN(translation))
+            console.log(translation);
     }
 
     hitPlayer(playerIdentity, damage){

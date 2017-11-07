@@ -138,7 +138,9 @@ class GameManager{
             switch (e.keyCode) {
                 case 32:
                     //you can shoot if you is active player and there was no shots in current turn
-                    if(!Cannonball.isOnScene && (gameinfo.you == currentPlayer))
+                    if(!gamemanager.game.isShotMade 
+                        && (gameinfo.you == currentPlayer)
+                    )
                     {
                         shootButtonPressed = true; //player can hold shoot button to increase shoot strength
                     }
@@ -229,7 +231,7 @@ class GameManager{
         translation = 0;
         strength = 0;
         shootButtonPressed = false;
-        Cannonball.isOnScene = false;
+        this.game.isShotMade = false;
         this.physics.destroyObjects();       
         this.physics = null;
         this.graphics.clearMainContext();
