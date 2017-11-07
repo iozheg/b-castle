@@ -63,7 +63,7 @@ UserInterface.prototype.draw = function(translation){
 		
 		//current player has indicator of shoot strength (when holding shoot button)
 		if(currentPlayer == players[identities[i]].identity){
-			this.context.fillStyle="#dddddd";
+			this.context.fillStyle="#0000dd";
 			this.context.fillRect(-2, -2.7, 4*(window.strength)/this.maxStrength, 0.2);
 		}
 		
