@@ -6,20 +6,12 @@ var b2Fixture = Box2D.Dynamics.b2Fixture;
 var b2World = Box2D.Dynamics.b2World;
 var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
 
-var Physics = window.Physics = function(element, scale, maxStrength, windforce) {
+var Physics = window.Physics = function(element, scale, maxStrength) {
 	var gravity = new b2Vec2(0,9.8);
 	this.world = new b2World(gravity, true);
-	// this.element = element;
-	// this.elementWidth = element.width;
-	// this.context = element.getContext("2d");
 	this.scale = scale || 20;
 	this.dtRemaining = 0;
 	this.stepAmount = 1/100;
-	// this.wind = {
-	// 	force: windforce,
-	// //	maxForce: 3,
-	// //	minForce: -3
-	// };
 	this.maxStrength = maxStrength;
 };
 

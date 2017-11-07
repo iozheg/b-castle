@@ -17,7 +17,7 @@ class Graphics{
         this.windForce = windForce;
     }
 
-    draw(physics){
+    draw(bodyList){
         this.buffer.ctx.save();
         this.buffer.ctx.scale(this.scale, this.scale);
         
@@ -35,9 +35,10 @@ class Graphics{
         
         //draw objects
         this.buffer.ctx.translate(translation, 0);
-        var obj = physics.world.GetBodyList();
+        let obj = bodyList;
+        console.log();
         while(obj) {
-            var body = obj.GetUserData();
+            let body = obj.GetUserData();
             if(body) {
                 body.draw(this.buffer.ctx);
             }
@@ -53,5 +54,21 @@ class Graphics{
         }
           
         this.buffer.ctx.restore();
+    }
+
+    clearBuffer(){
+        this.buffer.ctx.clearRect(
+            0,0,this.buffer.width, this.buffer.height
+        );
+    }
+
+    clearMainContext(){
+        this.context.clearRect(
+            0,0,this.buffer.width, this.buffer.height
+        );
+    }
+
+    drawBuffer(){
+        this.context.drawImage(this.buffer, 0, 0);
     }
 }

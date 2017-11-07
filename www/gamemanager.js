@@ -71,7 +71,6 @@ class GameManager{
                     gameinfo.windforce
                 );
         this.physics = new Physics(
-                    this.graphics.buffer, 
                     configuration.scale, 
                     configuration.maxStrength
                 );
@@ -141,31 +140,47 @@ class GameManager{
             switch (e.keyCode) {
                 case 32:
                     //you can shoot if you is active player and there was no shots in current turn
-                    if(!Cannonball.isOnScene && (gameinfo.you == currentPlayer)){
+                    if(!Cannonball.isOnScene && (gameinfo.you == currentPlayer))
+                    {
                         shootButtonPressed = true; //player can hold shoot button to increase shoot strength
                     }
                     break;
                 case 38:
-                    //you can move aim pointer up or down only if you are active player
+                    // You can move aim pointer up or down only 
+                    // if you are active player.
                     if(gameinfo.you != currentPlayer)
                         break;
-                    if(!players[gameinfo.you].angle.upperBound(players[gameinfo.you].getAngle())) //if current angle greater max value than set angle to max value
+                    if(!players[gameinfo.you].angle.upperBound(
+                            players[gameinfo.you].getAngle()
+                        )
+                    ) // If current angle greater max value 
+                        // than set angle to max value.
+                    {
                         angle = players[gameinfo.you].angle.max;
-                    else
+                    } else {
                         angle = players[gameinfo.you].getAngle() - players[gameinfo.you].angle.increment_sign * 0.02;
+                    }
                     
-                    gamemanager.messageHandler.sendMessage("gamemsg", "aimchange", {"angle":angle});
+                    gamemanager.messageHandler.sendMessage(
+                        "gamemsg", "aimchange", {"angle":angle}
+                    );
                     gamemanager.game.setAimPointer(gameinfo.you, angle);
                     break;
                 case 40:
                     if(gameinfo.you != currentPlayer)
                         break;
-                    if(!players[gameinfo.you].angle.lowerBound(players[gameinfo.you].getAngle()))	//if current angle less min value than set angle to min value
+                    if(!players[gameinfo.you].angle.lowerBound(
+                            players[gameinfo.you].getAngle()
+                        )
+                    )	//if current angle less min value than set angle to min value
+                    {
                         angle = players[gameinfo.you].angle.min;
-                    else
+                    } else
                         angle = players[gameinfo.you].getAngle() + players[gameinfo.you].angle.increment_sign * 0.02;
                     
-                    gamemanager.messageHandler.sendMessage("gamemsg", "aimchange", {"angle": + angle});
+                    gamemanager.messageHandler.sendMessage(
+                        "gamemsg", "aimchange", {"angle": + angle}
+                    );
                     gamemanager.game.setAimPointer(gameinfo.you, angle);
                     break;
                 case 37:
@@ -212,36 +227,25 @@ class GameManager{
         strength = 0;
         shootButtonPressed = false;
         Cannonball.isOnScene = false;
-        var obj = this.physics.world.GetBodyList();
-        while(obj){	//destroy all physical bodies
-            this.physics.world.DestroyBody(obj);
-            obj = obj.GetNext();
-        }
-        this.graphics.context.clearRect(
-            0,0, this.graphics.buffer.width, this.graphics.buffer.height
-        );
+        this.physics.destroyObjects();       
         this.physics = null;
+        this.graphics.clearMainContext();
         window.removeEventListener("keydown", this.control);
         window.removeEventListener("keyup", this.shootControl);
     }
 
     draw(){
         //draw terrain, physics, notifications, ui in buffer
-        this.graphics.buffer.ctx.clearRect(
-            0,0,this.graphics.buffer.width, this.graphics.buffer.height
-        );
-       
+        this.graphics.clearBuffer();      
         
         this.game.draw();
-        this.graphics.draw(this.physics);
+        this.graphics.draw(this.physics.getBodyList());
         this.ui.draw(translation);
     //    this.physics.draw();
         
         //draw buffer in main context
-        this.graphics.context.clearRect(
-            0,0,this.graphics.buffer.width, this.graphics.buffer.height
-        );
-        this.graphics.context.drawImage(this.graphics.buffer, 0, 0);
+        this.graphics.clearMainContext();
+        this.graphics.drawBuffer();
     }
 }
 
