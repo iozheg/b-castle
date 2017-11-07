@@ -22,21 +22,20 @@ class Graphics{
         this.buffer.ctx.scale(this.scale, this.scale);
         
         //show wind direction
-        let direction = this.windForce <= 0 
+        let direction = gameinfo.windForce <= 0 
             ? resources["windleft"] 
             : resources["windright"];
             this.buffer.ctx.drawImage(
                 direction, 
                 this.buffer.width / (this.scale*2), 
                 3,
-                Math.abs(this.windForce),
+                Math.abs(gameinfo.windForce),
                 0.8
             );
         
         //draw objects
         this.buffer.ctx.translate(translation, 0);
         let obj = bodyList;
-        console.log();
         while(obj) {
             let body = obj.GetUserData();
             if(body) {

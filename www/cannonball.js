@@ -1,9 +1,23 @@
 class Cannonball extends Shell{
-    constructor(physics, details, image){
+    constructor(physics, details, image, shootParams){
         super(physics.world, details);
         this.physics = physics;
         this.image = image;
         this.details = details;
+
+        //impulse after shot
+        this.body.ApplyImpulse(
+                    new b2Vec2(
+                        Math.cos(shootParams.angle)*shootParams.strength,
+                        Math.sin(shootParams.angle)*shootParams.strength
+                    ), 
+                    this.body.GetPosition()
+                ); 
+        //wind effect
+        this.body.ApplyForce(
+                    new b2Vec2(shootParams.windForce, 0), 
+                    this.body.GetPosition()
+                );	
     }
 
     getCurrentPosition(){
