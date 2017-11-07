@@ -183,14 +183,14 @@ class Battle(object):
         if initiator.side != self.turn:
             return
 
-        if data["target"] == self.p1.side:
+        if data["player"] == self.p1.side:
             self.p1_health -= damage
             
-        elif  data["target"] == self.p2.side:
+        elif  data["player"] == self.p2.side:
             self.p2_health -= damage
 
         message = '{{"type":"gamemsg", "event":"hit", "player":"{}",\
-            "damage":{}}}'.format(str(data["target"]), str(damage))        
+            "damage":{}}}'.format(str(data["player"]), str(damage))        
         self.p1.send_message(message)
         self.p2.send_message(message)
         
@@ -201,7 +201,7 @@ class Battle(object):
         
         self.log.append(
             "type:gamemsg, event:hit, player:" 
-            + str(data["target"]) +", damage:" + str(data["damage"])
+            + str(data["player"]) +", damage:" + str(data["damage"])
         )
     
     def game_over(self, winner, reason):
