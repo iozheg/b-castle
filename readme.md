@@ -4,7 +4,7 @@ Simple Box2d game
 
 Two players controls cannons. Aim: destroy opponent.
 
-This is simple game uses Javascript Box2D library for client side, nginx as proxy and Tornado Framework as websocket server. Currently using Javascript ES5, nginx 1.10.3, Tornado 4.5.2, python 3.5.3.
+This is simple game uses Javascript Box2D library for client side, nginx as proxy and Tornado Framework as websocket server. Currently using Javascript ES6, nginx 1.10.3, Tornado 4.5.2, python 3.5.3.
 <h3>HOW TO USE</h3>
 <ol type="1">
 <li>Configure nginx using cgi/tornado config.</li>
