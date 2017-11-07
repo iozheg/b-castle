@@ -102,7 +102,7 @@ class Game{
         this.turnStartTime = new Date().getTime()/1000; 	// new turn begins
         this.timeCounterIsActive = true;	//activate timer
         this.isShotMade = false; 	//no cannonballs on scene
-        gameinfo.windforce = windforce; 	//set wind force
+        gameinfo.windForce = windforce; 	//set wind force
         
         if(gameinfo.you == currentPlayer)
             this.notification.show("Your's turn", 2000, 3);
