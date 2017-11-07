@@ -59,7 +59,10 @@ class Game:
             self.players.append(client)
             client.register(self.players.index(client))
 
-            self.log.info("Registered player with ID", str(client.id))
+            self.log.info(
+                    "Registered player with ID", 
+                    [str(client.id), client.token]
+                )
         finally:
             LOCK.release()
 
