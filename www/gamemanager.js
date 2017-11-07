@@ -87,8 +87,6 @@ class GameManager{
                     configuration.maxStrength
                 ); //start game function
         
-        
-
         requestAnimationFrame(gameLoop);
     }
 
@@ -131,7 +129,7 @@ class GameManager{
         this.game.handleGameEvents(data);
         if(data.event == "gameover")
             //delay to show text 
-            setTimeout(function(){this.stopGame();}, 3500, 3);
+            setTimeout(function(){gamemanager.stopGame();}, 3500, 3);
     }
 
     keyboardControl(){
@@ -187,11 +185,16 @@ class GameManager{
                     translation += 1;
                     if(translation > configuration.cameraLimits.left)
                         translation = configuration.cameraLimits.left;
+
+                    if(isNaN(translation))
+                        console.log(translation);
                     break;
                 case 39:
                     translation -= 1;
                     if(translation < configuration.cameraLimits.right)
                         translation = configuration.cameraLimits.right;
+                    if(isNaN(translation))
+                        console.log(translation);
                     break;
             }
         };
@@ -204,8 +207,8 @@ class GameManager{
                             "gamemsg", 
                             "shot", 
                             {
-                                "strength":strength, 
-                                "angle":players[gameinfo.you].getAngle()
+                                "strength":parseFloat(strength.toFixed(3)), 
+                                "angle":parseFloat(players[gameinfo.you].getAngle().toFixed(3))
                             }
                         );			
                 strength = 0;
