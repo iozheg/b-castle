@@ -20,7 +20,8 @@ var Shoot = function(physics, playerIdentity, strength, angle){
 						radius: 0.3, 
 						shape: "circle", 
 						kind: "cannonball"
-					}
+					},
+					resources["cannonball"]
 				);
 			this.cannonball.body.ApplyImpulse(
 					new b2Vec2(
