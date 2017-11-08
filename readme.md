@@ -13,3 +13,7 @@ This is simple game uses Javascript Box2D library for client side, nginx as prox
 <li>Second player can connect to server on the same computer in other browser tab or window or another browser. Also second player can connect from another computer.</li>
 </ol>
 By default websocket port: 8888. To change: change at cgi/server.py, cgi/tornado and www/connector.js
+
+Screenshots:
+<img src='https://github.com/iozheg/b-castle/blob/master/bc1.PNG'></img>
+<img src='https://github.com/iozheg/b-castle/blob/master/bc2.PNG'></img>
