@@ -131,7 +131,7 @@ class Battle(object):
                 self.turn = self.p1.side
                                 
             message = '{{"type":"gamemsg", "event":"nextturn", \
-                "player":"{}", "windforce":{}}}'\
+                "player":"{}", "wind_force":{}}}'\
                 .format(self.turn, str(wind_force))
             self.p1.send_message(message)
             self.p2.send_message(message)
