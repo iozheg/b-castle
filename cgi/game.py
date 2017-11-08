@@ -108,6 +108,9 @@ class Game:
             self.get_player_by_token(data['token'])\
                 .is_ready_for_battle = True
 
+            self.get_player_by_token(data['token'])\
+                .nick = data['nick']
+
             world = World()
             amount_of_players = len(self.players)
             self.log.info("Amount of players:", str(amount_of_players))
