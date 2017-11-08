@@ -1,5 +1,5 @@
 class Graphics{
-    constructor(canvas, scale, cameraLimits, windForce){
+    constructor(canvas, scale, cameraLimits){
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d");
         this.buffer = document.createElement("canvas"); //for buffering
@@ -14,22 +14,21 @@ class Graphics{
         );
 
         this.scale = scale;
-        this.windForce = windForce;
     }
 
-    draw(bodyList){
+    draw(bodyList, windForce){
         this.buffer.ctx.save();
         this.buffer.ctx.scale(this.scale, this.scale);
         
         //show wind direction
-        let direction = gameinfo.windForce <= 0 
+        let direction = windForce <= 0 
             ? resources["windleft"] 
             : resources["windright"];
             this.buffer.ctx.drawImage(
                 direction, 
                 this.buffer.width / (this.scale*2), 
                 3,
-                Math.abs(gameinfo.windForce),
+                Math.abs(windForce),
                 0.8
             );
         

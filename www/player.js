@@ -1,5 +1,6 @@
 class Player{
     constructor(physics, identity, nick){
+        this.HP = 100;
         this.identity = identity;
         this.nick = nick;
         this.selectedWeapon = "cannonball"; //in future there may other types of shots
@@ -36,7 +37,7 @@ class Player{
                 }
             }
         }	
-        console.log(cannonXPosition);
+
         this.castle = new Castle(
             physics, 
             {
@@ -61,7 +62,6 @@ class Player{
                 angle: cannonStartAngle
             }
         );
-        console.log(this.aimPointer);
         this.aimPointer.body.GetFixtureList().SetSensor(true);
     }
     
@@ -76,5 +76,9 @@ class Player{
     }
     getCastlePosition(){
         return this.castle.body.GetPosition();
+    }
+
+    hit(damage){
+        this.HP -= damage;
     }
 }

@@ -127,9 +127,13 @@ Body.prototype.draw = function (context) {
  
     // If an image property is set, draw the image.
     if (this.details.image) {
-        context.drawImage(this.details.image, -this.details.width / 2, -this.details.height / 2,
-        this.details.width,
-        this.details.height);
+        context.drawImage(
+            this.details.image, 
+            -this.details.width / 2, 
+            -this.details.height / 2,
+            this.details.width,
+            this.details.height
+        );
  
     }
 /* 	if(this.details.kind == "cannonball"){

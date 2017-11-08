@@ -1,5 +1,5 @@
 class GameManager{
-    constructor(battleButton){
+    constructor(canvas, battleButton){
         this.messageHandler = new MessageHandler(
                                 this,
                                 this.register,
@@ -8,9 +8,19 @@ class GameManager{
                                 this.message
                             );        
         this.loading = new LoadingAnimation(resources["loading"]);
+        this.notification = new SimpleNotification();
+        this.canvas = canvas;
         this.battleButton = battleButton;
         
         this.keyboardControl();
+
+        this.terrainLine = [];
+        this.windForce = 0;
+        this.opponentNick = "";
+        this.playerNick = "";
+        this.thisPlayer = "";
+        this.opponent = "";
+        this.firstTurnYours = false;
     }
 
     register(data){
@@ -25,9 +35,12 @@ class GameManager{
     }
 
     startSearch(){
-        gameinfo.plnick = document.getElementById("P1Nick").value;
-        this.messageHandler.sendMessage("search");
-        gameinfo.status = 3;
+        this.playerNick = document.getElementById("P1Nick").value;
+        this.messageHandler.sendMessage(
+                            "search", 
+                            null, 
+                            {nick: this.playerNick}
+                        );
         this.loading.show(document.getElementById("helloDialog"));
         this.battleButton.innerHTML = "Stop searching";
         this.battleButton.onclick = function(){
@@ -43,50 +56,68 @@ class GameManager{
     }
 
     initiateGame(data){
-        gameinfo.status = 4;
-        gameinfo.opponent_id = data.opponent_id;
-        gameinfo.oppnick = data.opponent_nick;
+        this.opponentNick = data.opponent_nick;        
+        this.windForce = data.wind_force;
+        this.terrainLine = JSON.parse(data.terrain);
         
         if(data.turn == "yes"){
-            gameinfo.you = "player1";
-            gameinfo.opponent = "player2";
-            gameinfo.turn = true;
+            this.thisPlayer = "player1";
+            this.opponent = "player2";
+            this.firstTurnYours = true;
+        } else {
+            this.thisPlayer = "player2";
+            this.opponent = "player1";
+            this.firstTurnYours = false;
         }
-        gameinfo.windforce = data.wind_force;
-        gameinfo.terrain = JSON.parse(data.terrain);
-        this.startGame();
-    }
 
-    startGame(){
-        this.loading.hide(document.getElementById("helloDialog"));
-        
+        this.loading.hide(document.getElementById("helloDialog"));        
         document.getElementById("helloDialog").style.display = "none";	//hide menu
         document.getElementById("fade").style.display = "none";
+
+        this.startGame();
+    }
+    startGame(){        
         gameState = "running";	//playing - game was started, stop - game wasn't started, pause - game was paused after start by ESC key
         
         this.graphics = new Graphics(
-                    document.getElementById("b2dCanvas"), 
+                    canvas, 
                     configuration.scale, 
                     configuration.cameraLimits, 
-                    gameinfo.windforce
+                    this.windForce
                 );
         this.physics = new Physics(
                     configuration.scale, 
                     configuration.maxStrength
                 );
-        this.ui = new UserInterface(
-                    this.graphics.buffer.ctx, 
-                    this.graphics.buffer.width, 
-                    configuration.scale, 
-                    configuration.maxStrength
+        this.ui = new UserInterface();
+
+        players["player1"] = new Player(
+                    this.physics, 
+                    "player1", 
+                    (
+                        this.firstTurnYours 
+                        ? (this.playerNick || "you") 
+                        : (this.opponentNick || "opponent")
+                    )
                 );
+        players["player2"] = new Player(
+                    this.physics, 
+                    "player2", 
+                    (
+                        !this.firstTurnYours 
+                        ? (this.playerNick || "you") 
+                        : (this.opponentNick || "opponent")
+                    )
+                );
+
         this.game = new Game(
-                    this,
-                    this.graphics,
+                    this.graphics.buffer.ctx,
                     this.physics,
-                    configuration.maxStrength
+                    this.terrainLine,
+                    this.windForce
                 ); //start game function
         
+        this.notification.show("Game started", 2500, 2);
         requestAnimationFrame(gameLoop);
     }
 
@@ -120,16 +151,42 @@ class GameManager{
     // TODO: what is aim of this method?
     message(data){
         if(data.event == "stopgame"){ 	//if connection with opponent is lost
-            this.game.notification.show(data.reason, 3000, 2);
+            this.notification.show(data.reason, 3000, 2);
             setTimeout(function(){gamemanager.stopGame();}, 3500, 3);
         }
     }
 
     handleGameEvents(data){
-        this.game.handleGameEvents(data);
-        if(data.event == "gameover")
+        this.game.handleGameEvents(data, this.opponent);
+
+        this.showNotification(data);
+    }
+
+    showNotification(data){
+        if(data.event == "nextturn"){
+            this.windForce = data.windforce;
+            if(this.thisPlayer == currentPlayer)
+                this.notification.show("Your's turn", 2000, 3);
+            else
+                this.notification.show("Opponent's turn", 2000, 3);
+        } else if(data.event == "gameover"){	//message "gameover" contains players identity who won this game and reason
+            gameinfo.status = 5;
+            if(data.player == this.thisPlayer) 	//if you won
+                if(data.reason == "surrender") 	//if your opponent surrendered
+                    this.notification.show(
+                        "Your opponent has surrendered", 3000, 2
+                    );
+                else this.notification.show("You WON!", 3000, 3);
+            else if(data.player == this.opponent) 	//if your opponent won
+                if(data.reason == "surrender") 				//if you surrendered
+                    this.notification.show(
+                        "You have surrendered", 3000, 2
+                    );
+                else this.notification.show("You LOSE!", 3000, 3);
+            
             //delay to show text 
-            setTimeout(function(){gamemanager.stopGame();}, 3500, 3);
+            setTimeout(() => this.stopGame(), 3500, 3);
+        }            
     }
 
     keyboardControl(){
@@ -137,51 +194,60 @@ class GameManager{
             var angle;
             switch (e.keyCode) {
                 case 32:
-                    //you can shoot if you is active player and there was no shots in current turn
+                    // You can shoot if you is active player 
+                    // and there was no shots in current turn.
                     if(!gamemanager.game.isShotMade 
-                        && (gameinfo.you == currentPlayer)
+                        && (gamemanager.thisPlayer == currentPlayer)
                     )
                     {
-                        shootButtonPressed = true; //player can hold shoot button to increase shoot strength
+                        // Player can hold shoot button 
+                        // to increase shoot strength.
+                        shootButtonPressed = true; 
                     }
                     break;
                 case 38:
                     // You can move aim pointer up or down only 
                     // if you are active player.
-                    if(gameinfo.you != currentPlayer)
+                    if(gamemanager.thisPlayer != currentPlayer)
                         break;
-                    if(!players[gameinfo.you].angle.upperBound(
-                            players[gameinfo.you].getAngle()
+                    if(!players[gamemanager.thisPlayer].angle.upperBound(
+                            players[gamemanager.thisPlayer].getAngle()
                         )
                     ) // If current angle greater max value 
                         // than set angle to max value.
                     {
-                        angle = players[gameinfo.you].angle.max;
+                        angle = players[gamemanager.thisPlayer].angle.max;
                     } else {
-                        angle = players[gameinfo.you].getAngle() - players[gameinfo.you].angle.increment_sign * 0.02;
+                        angle = players[gamemanager.thisPlayer].getAngle() 
+                            - players[gamemanager.thisPlayer].angle.increment_sign 
+                            * 0.02;
                     }
                     
                     gamemanager.messageHandler.sendMessage(
                         "gamemsg", "aimchange", {"angle":angle}
                     );
-                    gamemanager.game.setAimPointer(gameinfo.you, angle);
+                    gamemanager.game.setAimPointer(gamemanager.thisPlayer, angle);
                     break;
                 case 40:
-                    if(gameinfo.you != currentPlayer)
+                    if(gamemanager.thisPlayer != currentPlayer)
                         break;
-                    if(!players[gameinfo.you].angle.lowerBound(
-                            players[gameinfo.you].getAngle()
+                    // If current angle less min value than 
+                    // set angle to min value.
+                    if(!players[gamemanager.thisPlayer].angle.lowerBound(
+                            players[gamemanager.thisPlayer].getAngle()
                         )
-                    )	//if current angle less min value than set angle to min value
+                    )	
                     {
-                        angle = players[gameinfo.you].angle.min;
+                        angle = players[gamemanager.thisPlayer].angle.min;
                     } else
-                        angle = players[gameinfo.you].getAngle() + players[gameinfo.you].angle.increment_sign * 0.02;
+                        angle = players[gamemanager.thisPlayer].getAngle() 
+                            + players[gamemanager.thisPlayer].angle.increment_sign 
+                            * 0.02;
                     
                     gamemanager.messageHandler.sendMessage(
                         "gamemsg", "aimchange", {"angle": + angle}
                     );
-                    gamemanager.game.setAimPointer(gameinfo.you, angle);
+                    gamemanager.game.setAimPointer(gamemanager.thisPlayer, angle);
                     break;
                 case 37:
                     translation += 1;
@@ -210,7 +276,7 @@ class GameManager{
                             "shot", 
                             {
                                 "strength":parseFloat(strength.toFixed(3)), 
-                                "angle":parseFloat(players[gameinfo.you].getAngle().toFixed(3))
+                                "angle":parseFloat(players[gamemanager.thisPlayer].getAngle().toFixed(3))
                             }
                         );			
                 strength = 0;
@@ -243,9 +309,26 @@ class GameManager{
         //draw terrain, physics, notifications, ui in buffer
         this.graphics.clearBuffer();      
         
-        this.game.draw();
-        this.graphics.draw(this.physics.getBodyList());
-        this.ui.draw(translation);
+        this.game.draw(
+                this.graphics.buffer.ctx, 
+                this.graphics.buffer.width,
+                this.physics.scale
+            );
+        this.graphics.draw(this.physics.getBodyList(), this.windForce);
+        this.ui.draw(
+                this.graphics.buffer.ctx, 
+                this.graphics.buffer.width, 
+                configuration.scale, 
+                configuration.maxStrength,
+                translation,
+                this.thisPlayer
+            );
+        
+        this.notification.draw(
+                this.graphics.buffer.ctx, 
+                this.graphics.buffer.width,
+                this.physics.scale
+            );  
     //    this.physics.draw();
         
         //draw buffer in main context

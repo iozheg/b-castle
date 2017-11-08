@@ -10,23 +10,18 @@ class Connector{
             + " " + currentDate.getDate() 
             + " " + currentDate.getTime()
         );
-        gameinfo.rId = this.rId;
-        gameinfo.status = 1;
 
         this.ws = new WebSocket(
             "ws://" + window.location.hostname + ":8888/ws?id=" + this.rId
         );
-        this.ws.gameinfo = gameinfo;        
-    //    this.ws.callbackOnMessage = this.getMessage;
-    //    this.ws.callbackOnClose = this.closeConnection;
+        this.ws.rId = this.rId;        
 
         this.ws.onopen = function(e) {
-            this.gameinfo.status = 1;
         //    _gameinfo;
             this.send(
                 unescape(encodeURIComponent(
                     '{"type" : "register", \
-                    "token" : "' + this.gameinfo.rId + '"}'
+                    "token" : "' + this.rId + '"}'
                 ))
             );
         }
@@ -38,6 +33,10 @@ class Connector{
 
     send(message){
         this.ws.send(message);
+    }
+
+    get connectionId(){
+        return this.rId;
     }
 /*
     getMessage(data){

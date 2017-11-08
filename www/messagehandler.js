@@ -12,19 +12,18 @@ class MessageHandler{
         this.searchHandler = searchHandler;
         this.messageHand = messageHand;
 
-        this.connector = new Connector(
-            this
-        );
+        this.connector = new Connector(this);
+        this.connectionId = this.connector.connectionId;
     }
 
     handleMessage(rawMessage){
-        let parsedMessage = JSON.parse(rawMessage.data);
 
-        if(typeof rawMessage === CloseEvent){
+        if(rawMessage instanceof CloseEvent){
             this.handleConnectionLost();
             return;
         }
 
+        let parsedMessage = JSON.parse(rawMessage.data);
         switch (parsedMessage.type){
             case "register":
                 this.registerHandler.call(
@@ -59,11 +58,11 @@ class MessageHandler{
     sendMessage(type, event=null, extraData={}){
         let data = {
             type: type,
-            token: gameinfo.rId
+            token: this.connectionId
         };
         switch (type){
             case "search":
-                data.nick = gameinfo.plnick;
+                data.nick = extraData.nick;
                 break;
             case "stopsearch":
                 break;
@@ -113,6 +112,6 @@ class MessageHandler{
         div.style.textAlign = "center";
         errorMessageDiv.appendChild(div);
         gameinfo.status = 6;
-        stopgame("connection");
+        this.gameManagerContext.stopGame("connection");
     }
 }

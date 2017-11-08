@@ -1,6 +1,5 @@
 class Castle{
     constructor(physics, details, playerIdentity, playerNick){
-        this.castleHP = 100;
         this.playerIdentity = playerIdentity;
         this.playerNick = playerNick;
         
@@ -60,7 +59,7 @@ class Castle{
     contact(contact, impulse){
         var kind = contact.GetFixtureB().GetBody().GetUserData().details.kind;
         //check that cannonball collides castle
-        if(kind == "cannonball" && this.castleHP > 0){ 
+        if(kind == "cannonball"){ 
             gamemanager.messageHandler.sendMessage(
                         "gamemsg", 
                         "hit", 

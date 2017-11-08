@@ -1,5 +1,5 @@
 class Shoot{
-    constructor(physics, playerIdentity, strength, angle){
+    constructor(physics, playerIdentity, strength, angle, windForce){
         let playersPosition = players[playerIdentity].getPointerPosition();
         this.startPosition = {
             x: parseFloat(
@@ -25,7 +25,7 @@ class Shoot{
                         {
                             angle: angle,
                             strength: strength,
-                            windForce: gameinfo.windForce
+                            windForce: windForce
                         }
                     );
                 break;

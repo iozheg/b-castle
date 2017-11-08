@@ -14,15 +14,15 @@
 		<script src="shoot.js"></script>
 		<script src="lasergunClass.js"></script>
 		<script src="castle.js"></script>
-		<script src="terrainClass.js"></script>
+		<script src="terrain.js"></script>
 		<script src="resourceLoader.js"></script>
-		<script src="animationClass.js"></script>
+		<script src="animation.js"></script>
 		<script src="player.js"></script>
-		<script src="userinterfaceClass.js"></script>
+		<script src="userinterface.js"></script>
 		<script src="connector.js"></script>
 		<script src="messagehandler.js"></script>
 		<script src="loadinganimationClass.js"></script>
-		<script src="notificationClass.js"></script>
+		<script src="notification.js"></script>
 		<script src="jquery-2.1.4.min.js"></script>
 		<script src="md5-min.js"></script>
 		<script src="conf.js"></script>
@@ -45,8 +45,6 @@
 			</div>
 		</div>	
 		<script>
-			var conn; 					//here is connection variable
-			var game; 					//main game variable
 			var players = [];
 			var currentPlayer = "player1";
 			var gameState = "stop";
@@ -57,16 +55,16 @@
 			var shootButtonPressed = false;
 			var resources = []; 		//images
 			var gameinfo = {
-				rId: 0,					//"unique" ID
-				opponent_id: null,
-				opponent: "player1",
-				you: "player2",
-				turn: false,			//whose turn. true - your, false - opponent's
-				yourAimpointerAngle: 0,
-				opponentAimpointerAngle: 0,
-				windforce: 0,
-				terrain: 0,
-				status: 0
+			//	rId: 0,					//"unique" ID
+			//	opponent_id: null,
+			//	opponent: "player1",
+			//	you: "player2",
+			//	turn: false,			//whose turn. true - your, false - opponent's
+			//	yourAimpointerAngle: 0,
+			//	opponentAimpointerAngle: 0,
+			//	windForce: 0,
+			//	terrain: 0,
+			//	status: 0
 			};
 
 			var errorMessageDiv = document.getElementById("helloDialog");
@@ -74,8 +72,11 @@
 
 			window.onload = function() {
 				//calculate browser window width, calculate max camera translation in right side, specify canvas width
-				var windowWidth = window.innerWidth || document.documentElement.clientWidth;
-				configuration.cameraLimits.right = (windowWidth - configuration.gameSceneWidth)/configuration.scale;
+				var windowWidth = window.innerWidth 
+								|| document.documentElement.clientWidth;
+				configuration.cameraLimits.right = 
+							(windowWidth - configuration.gameSceneWidth)
+							/ configuration.scale;
 				if(configuration.cameraLimits.right >= 0)
 					configuration.cameraLimits.right = -1;
 				var bodyMargin = 8 + 8;
@@ -86,14 +87,18 @@
 				//establish websocket connection, load images
 				loadResources();
 				gamemanager = new GameManager(
+					canvas,
 					document.getElementById("battle_button")
 				);
 			};
 			
 			window.onresize = function(){
 				//do the same as onload if window was resized
-				var windowWidth = window.innerWidth || document.documentElement.clientWidth;
-				configuration.cameraLimits.right = (windowWidth - configuration.gameSceneWidth)/configuration.scale;
+				var windowWidth = window.innerWidth 
+								|| document.documentElement.clientWidth;
+				configuration.cameraLimits.right = 
+							(windowWidth - configuration.gameSceneWidth)
+							/ configuration.scale;
 				if(configuration.cameraLimits.right >= 0)
 					configuration.cameraLimits.right = -1;
 				bodyMargin = 8 + 8;
@@ -101,7 +106,9 @@
 				canvas.style.width = windowWidth - bodyMargin + "px";
 				canvas.style.height = "700px";
 				
-				translation = translation < configuration.cameraLimits.right ? configuration.cameraLimits.right : translation;
+				translation = translation < configuration.cameraLimits.right 
+								? configuration.cameraLimits.right 
+								: translation;
 			}
 			
 			/*
