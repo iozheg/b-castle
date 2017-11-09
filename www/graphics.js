@@ -16,7 +16,7 @@ class Graphics{
         this.scale = scale;
     }
 
-    draw(bodyList, windForce){
+    draw(bodyList, windForce, translation){
         this.buffer.ctx.save();
         this.buffer.ctx.scale(this.scale, this.scale);
         

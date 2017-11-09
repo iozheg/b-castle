@@ -1,5 +1,5 @@
 class GameManager{
-    constructor(canvas, battleButton){
+    constructor(camera, canvas, battleButton){
         this.messageHandler = new MessageHandler(
                                 this,
                                 this.register,
@@ -9,6 +9,7 @@ class GameManager{
                             );        
         this.loading = new LoadingAnimation(resources["loading"]);
         this.notification = new SimpleNotification();
+        this.camera = camera;
         this.canvas = canvas;
         this.battleButton = battleButton;
         
@@ -81,12 +82,12 @@ class GameManager{
         
         this.graphics = new Graphics(
                     canvas, 
-                    configuration.scale, 
-                    configuration.cameraLimits, 
+                    this.camera.scale, 
+                    this.camera.cameraLimits, 
                     this.windForce
                 );
         this.physics = new Physics(
-                    configuration.scale, 
+                    this.camera.scale, 
                     configuration.maxStrength
                 );
         this.ui = new UserInterface();
@@ -111,6 +112,7 @@ class GameManager{
                 );
 
         this.game = new Game(
+                    this.camera,
                     this.graphics.buffer.ctx,
                     this.physics,
                     this.terrainLine,
@@ -164,7 +166,7 @@ class GameManager{
 
     showNotification(data){
         if(data.event == "nextturn"){
-            this.windForce = data.windforce;
+            this.windForce = data.wind_force;
             if(this.thisPlayer == currentPlayer)
                 this.notification.show("Your's turn", 2000, 3);
             else
@@ -249,21 +251,21 @@ class GameManager{
                     );
                     gamemanager.game.setAimPointer(gamemanager.thisPlayer, angle);
                     break;
-                case 37:
-                    translation += 1;
-                    if(translation > configuration.cameraLimits.left)
-                        translation = configuration.cameraLimits.left;
+                // case 37:
+                //     translation += 1;
+                //     if(translation > configuration.cameraLimits.left)
+                //         translation = configuration.cameraLimits.left;
 
-                    if(isNaN(translation))
-                        console.log(translation);
-                    break;
-                case 39:
-                    translation -= 1;
-                    if(translation < configuration.cameraLimits.right)
-                        translation = configuration.cameraLimits.right;
-                    if(isNaN(translation))
-                        console.log(translation);
-                    break;
+                //     if(isNaN(translation))
+                //         console.log(translation);
+                //     break;
+                // case 39:
+                //     translation -= 1;
+                //     if(translation < configuration.cameraLimits.right)
+                //         translation = configuration.cameraLimits.right;
+                //     if(isNaN(translation))
+                //         console.log(translation);
+                //     break;
             }
         };
 
@@ -314,13 +316,17 @@ class GameManager{
                 this.graphics.buffer.width,
                 this.physics.scale
             );
-        this.graphics.draw(this.physics.getBodyList(), this.windForce);
+        this.graphics.draw(
+                    this.physics.getBodyList(), 
+                    this.windForce,
+                    this.camera.translation
+                );
         this.ui.draw(
                 this.graphics.buffer.ctx, 
                 this.graphics.buffer.width, 
-                configuration.scale, 
+                this.camera.scale, 
                 configuration.maxStrength,
-                translation,
+                this.camera.translation,
                 this.thisPlayer
             );
         

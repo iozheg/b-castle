@@ -6,6 +6,7 @@
 		<script src="Box2d.min.js"></script>
 		<script src="bodyClass.js"></script>
 		<script src="game.js"></script>
+		<script src="camera.js"></script>
 		<script src="gamemanager.js"></script>
 		<script src="graphics.js"></script>
 		<script src="physics.js"></script>
@@ -72,21 +73,23 @@
 
 			window.onload = function() {
 				//calculate browser window width, calculate max camera translation in right side, specify canvas width
-				var windowWidth = window.innerWidth 
-								|| document.documentElement.clientWidth;
-				configuration.cameraLimits.right = 
-							(windowWidth - configuration.gameSceneWidth)
-							/ configuration.scale;
-				if(configuration.cameraLimits.right >= 0)
-					configuration.cameraLimits.right = -1;
+				 var windowWidth = window.innerWidth 
+				 				|| document.documentElement.clientWidth;
+				// configuration.cameraLimits.right = 
+				// 			(windowWidth - configuration.gameSceneWidth)
+				// 			/ configuration.scale;
+				// if(configuration.cameraLimits.right >= 0)
+				// 	configuration.cameraLimits.right = -1;
 				var bodyMargin = 8 + 8;
 				canvas.setAttribute("width", windowWidth - bodyMargin);
 				canvas.style.width = windowWidth - bodyMargin + "px";
 				canvas.style.height = "700px";
 				
+				camera = new Camera(canvas);
 				//establish websocket connection, load images
 				loadResources();
 				gamemanager = new GameManager(
+					camera,
 					canvas,
 					document.getElementById("battle_button")
 				);
@@ -96,19 +99,18 @@
 				//do the same as onload if window was resized
 				var windowWidth = window.innerWidth 
 								|| document.documentElement.clientWidth;
-				configuration.cameraLimits.right = 
-							(windowWidth - configuration.gameSceneWidth)
-							/ configuration.scale;
-				if(configuration.cameraLimits.right >= 0)
-					configuration.cameraLimits.right = -1;
+				// configuration.cameraLimits.right = 
+				// 			(windowWidth - configuration.gameSceneWidth)
+				// 			/ configuration.scale;
+				// if(configuration.cameraLimits.right >= 0)
+				// 	configuration.cameraLimits.right = -1;
 				bodyMargin = 8 + 8;
 				canvas.setAttribute("width", windowWidth - bodyMargin);
 				canvas.style.width = windowWidth - bodyMargin + "px";
 				canvas.style.height = "700px";
-				
-				translation = translation < configuration.cameraLimits.right 
-								? configuration.cameraLimits.right 
-								: translation;
+
+				camera.calculateCameraLimits();
+				camera.adjustTranslation();
 			}
 			
 			/*

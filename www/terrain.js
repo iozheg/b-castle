@@ -70,7 +70,7 @@ class Terrain{
         }
     }
 
-    draw(context, scale){
+    draw(context, scale, translation){
         context.save();
         context.putImageData(this.imgData, translation * scale + 150, 0);
         context.restore();

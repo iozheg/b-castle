@@ -1,5 +1,6 @@
 class Game{
     constructor(
+            camera,
             context, 
             physics, 
             terrainLine, 
@@ -13,6 +14,7 @@ class Game{
         this.elapsedTurnTime = 0;
         this.timeCounterIsActive = true;	// When player shooted stop turn timer. This will prevent game's next turn
 
+        this.camera = camera;
         this.physics = physics;
         this.windForce = windForce;
         this.isShotMade = false;
@@ -57,13 +59,10 @@ class Game{
         
         //set start camera position
         if(currentPlayer == "player1")
-            translation = configuration.cameraLimits.left;
+            this.camera.setToLeftBorder();
         else 
-            translation = configuration.cameraLimits.right;
-
-        if(isNaN(translation))
-            console.log(translation);
-        
+            this.camera.setToRightBorder();
+       
         this.turnStartTime = new Date().getTime()/1000; 	// new turn begins
         this.timeCounterIsActive = true;	//activate timer
         this.isShotMade = false; 	//no cannonballs on scene
@@ -72,19 +71,19 @@ class Game{
     draw(context, width, scale){
         //draw terrain, physics, notifications, ui in buffer
 
-        this.terrain.draw(context, scale);      
+        this.terrain.draw(context, scale, this.camera.translation);      
         
         //after shot move camera to cannonball
         if(this.isShotMade){
-            var currentPosition = this.shot.getCurrentPosition();
-            var startPosition = this.shot.getStartPosition();
+            let currentPosition = this.shot.getCurrentPosition();
+        //    var startPosition = this.shot.getStartPosition();
             
             // When cannonball is out of horizontal scene borders 
             // then we delete it (call contact method).
             if(
                 (currentPosition.x * scale 
                     > width 
-                        - configuration.cameraLimits.right
+                        - this.camera.cameraLimits.right
                         * scale + 30) 
                     || currentPosition.x * scale < - 30
                 )
@@ -92,29 +91,14 @@ class Game{
                 this.shot.contact();
                 this.isShotMade = false; 
             }
-            
+            this.camera.followObject(currentPosition);
             // Because cannonballs can fly right or left 
             // we move camera right or left.
             // Also we must control camera translation 
             // (it must not be out of scene borders).            
-            if(currentPlayer == "player1"){		//camera is moving to the left
-                translation = translation > configuration.cameraLimits.right
-                                ? configuration.cameraLimits.left 
-                                    + (startPosition.x - currentPosition.x) 
-                                : configuration.cameraLimits.right;
-                if(translation > configuration.cameraLimits.left)
-                    translation = configuration.cameraLimits.left;
-            }
-            else {		//camera is moving to right border
-                translation = translation < configuration.cameraLimits.left 
-                                ? configuration.cameraLimits.right 
-                                    + (startPosition.x - currentPosition.x) 
-                                : configuration.cameraLimits.left;
-                if(translation < configuration.cameraLimits.right)
-                    translation = configuration.cameraLimits.right;
-            } 
-            if(isNaN(translation))
-                console.log(translation);
+            
+        
+          
         } 
     }
 
@@ -135,11 +119,11 @@ class Game{
                 );
         
         //focus camera the shot
-        translation = currentPlayer == "player1" 
-                        ? configuration.cameraLimits.left - 0.01 
-                        : configuration.cameraLimits.right + 0.01;
-        if(isNaN(translation))
-            console.log(translation);
+        // translation = currentPlayer == "player1" 
+        //                 ? configuration.cameraLimits.left - 0.01 
+        //                 : configuration.cameraLimits.right + 0.01;
+        // if(isNaN(translation))
+        //     console.log(translation);
     }
 
     hitPlayer(playerIdentity, damage){
