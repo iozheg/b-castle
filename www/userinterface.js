@@ -1,36 +1,109 @@
 class UserInterface{
-    constructor(){
-        var inGameMenu = document.createElement("div");
-        var menuButton = document.createElement("button");
-        var menuBackButton = document.createElement("button");
-        var surrenderButton = document.createElement("button");
+    constructor(gamemanager){
+        this.gamemanager = gamemanager;
         
-        menuButton.innerHTML = "Menu";
-        menuButton.className = "menu_button";
-        inGameMenu.className = "ingamemenu";
-        inGameMenu.appendChild(menuButton);
-        menuBackButton.innerHTML = "Back";
-        surrenderButton.innerHTML = "Surrender";
-        document.body.appendChild(inGameMenu);
-        
-        menuButton.onclick = function(){
-            menuButton.style.display = "none";
-            inGameMenu.appendChild(surrenderButton);
-            inGameMenu.appendChild(menuBackButton);
+        this.loading = new LoadingAnimation(resources["loading"]);
+        this.battleButton = document.getElementById("battle_button");
+
+        this.createInGameMenu();
+    }
+
+    registered(){
+        this.inGameMenu.style.display = "none";
+
+        this.battleButton.innerHTML = "Battle!";
+        this.battleButton.onclick = () => {
+            this.startSearch();
+            return false;
         }
-        
-        menuBackButton.onclick = function(){
-            inGameMenu.removeChild(surrenderButton);
-            inGameMenu.removeChild(menuBackButton);
-            menuButton.style.display = "block";
+    }
+
+    startSearch(){
+        this.playerNick = document.getElementById("P1Nick").value;
+
+        this.battleButton.innerHTML = "Stop searching";
+        this.battleButton.onclick = function(){
+            this.battleButton.innerHTML = "Battle!";
+            this.loading.hide(document.getElementById("helloDialog"));
+            this.battleButton.onclick = function(){
+                this.startSearch();
+                return false;
+            }
+            return false;
+        }        
+        this.loading.show(document.getElementById("helloDialog"));
+
+        this.gamemanager.startSearch(this.playerNick);
+    }
+
+    stopSearch(){
+        this.gamemanager.stopSearch();
+    }
+
+    gameStarted(){
+        this.loading.hide(document.getElementById("helloDialog"));        
+        document.getElementById("helloDialog").style.display = "none";	//hide menu
+        document.getElementById("fade").style.display = "none";        
+        this.inGameMenu.style.display = "block";
+    }
+
+    gameStopped(reason){
+        if(reason == "connection"){ //if reason of game stop - connection with server lost
+            this.battleButton.innerHTML = "Reconnect";
+            this.battleButton.onclick = function(){
+                location.reload();
+                return false;
+            }
         }
+        else{	//if reason - any other
+            this.battleButton.innerHTML = "Battle!";
+            this.battleButton.onclick = () => {
+                this.startSearch("Battle!");
+                return false;
+            }
+        }
+        this.loading.hide(document.getElementById("helloDialog"));
+        this.inGameMenu.style.display = "none";
+        document.getElementById("helloDialog").style.display = "block";
+        document.getElementById("fade").style.display = "block";
+    }
+
+    createInGameMenu(){
+        this.inGameMenu = document.createElement("div");
+        this.menuButton = document.createElement("button");
+        this.menuBackButton = document.createElement("button");
+        this.surrenderButton = document.createElement("button");
         
-        surrenderButton.onclick = function(){
+        this.menuButton.innerHTML = "Menu";
+        this.menuButton.className = "menu_button";
+        this.inGameMenu.className = "ingamemenu";
+        this.inGameMenu.appendChild(this.menuButton);
+        this.menuBackButton.innerHTML = "Back";
+        this.surrenderButton.innerHTML = "Surrender";
+        document.body.appendChild(this.inGameMenu);
+        
+        this.menuButton.onclick = () => this.showMenu();
+        
+        this.menuBackButton.onclick = () => this.hideMenu();
+        
+        this.surrenderButton.onclick = function(){
             gamemanager.messageHandler.sendMessage("gamemsg", "surrender");
         }
     }
 
-    draw(context, width, scale, maxStrength, translation, thisPlayer){        
+    showMenu(){
+        this.menuButton.style.display = "none";
+        this.inGameMenu.appendChild(this.surrenderButton);
+        this.inGameMenu.appendChild(this.menuBackButton);
+    }
+
+    hideMenu(){
+        this.inGameMenu.removeChild(this.surrenderButton);
+        this.inGameMenu.removeChild(this.menuBackButton);
+        this.menuButton.style.display = "block";
+    }
+
+    draw(context, width, scale, translation, strength, maxStrength, thisPlayer, currentPlayer){
         for(let p in players){
             let position = players[p].getCastlePosition();
             
@@ -71,7 +144,7 @@ class UserInterface{
                 context.fillRect(
                             -2, 
                             -2.7, 
-                            4*(window.strength)/maxStrength, 
+                            4*(strength)/maxStrength, 
                             0.2
                         );
             }
@@ -80,7 +153,7 @@ class UserInterface{
             context.save();
             
             //show timer
-            let timeLefted = 30 - gamemanager.game.elapsedTurnTime>>0;
+            let timeLefted = 30 - gamemanager.elapsedTurnTime>>0;
             if(timeLefted < 0)
                 timeLefted = 0;
             context.font="36px 'Press Start 2P'";
