@@ -5,11 +5,15 @@ class Terrain{
         //every pixel of imgData contains 4 elements: r, g, b, a
         this.rowCapacity = this.width * 4;
         this.imgData = context.createImageData(this.width, this.height);
+        this.imageBitmap = null;
         
         this.terrainLine = new Array(terrainLine.length);
         this.terrainLine = terrainLine;
         //we have to fill whole imgData massive using terrain line
         this.fillTerrain();
+
+        createImageBitmap(this.imgData)
+            .then(bitmap => this.imageBitmap = bitmap);
     }
 
     fillTerrain(){
@@ -70,9 +74,19 @@ class Terrain{
         }
     }
 
+    redrawTerrain(){
+        createImageBitmap(this.imgData)
+            .then(bitmap => this.imageBitmap = bitmap);
+    }
+
     draw(context, scale, translation){
+        
+    //    console.time("Drawing terrain...");
         context.save();
-        context.putImageData(this.imgData, translation * scale + 150, 0);
-        context.restore();
+        context.drawImage(this.imageBitmap, translation * scale + 150, 0);
+    //    context.putImageData(this.imgData, translation * scale + 150, 0);
+        context.restore();        
+    //    console.timeEnd("Drawing terrain...");
+       
     }
 }
