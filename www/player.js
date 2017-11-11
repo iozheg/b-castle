@@ -66,7 +66,7 @@ class Player{
     }
     
     getAngle(){
-        return this.aimPointer.body.GetAngle();
+        return parseFloat(this.aimPointer.body.GetAngle().toFixed(5));
     }
     setAngle(angle){
         this.aimPointer.body.SetAngle(angle);
