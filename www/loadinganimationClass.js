@@ -8,5 +8,8 @@ LoadingAnimation.prototype.show = function(parentElement){
 	parentElement.appendChild(this.loading);
 }
 LoadingAnimation.prototype.hide = function(parentElement){
-	parentElement.removeChild(this.loading);
+	try{
+		parentElement.removeChild(this.loading);
+	}
+	catch(e){console.log("No loading animation.");}
 }

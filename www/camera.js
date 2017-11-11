@@ -1,7 +1,7 @@
 class Camera{
     constructor(canvas){
         this.scale = 20;
-        this.gameSceneWidth = 2100;
+        this.gameSceneWidth = 2100; //pixels
         this.canvas = canvas;
         this.translation = 0;
         this.cameraLimits = { right: 0, left: 0};
@@ -63,5 +63,10 @@ class Camera{
             }
         }
         window.addEventListener("keydown", this.control);
+    }
+
+    isObjectInSceneBorders(objectPosition){
+        let sceneWidth = this.gameSceneWidth / 20;
+        return (objectPosition.x > -5 && objectPosition.x < sceneWidth + 5);
     }
 }

@@ -18,23 +18,26 @@ class Cannonball extends Shell{
                     new b2Vec2(shootParams.windForce, 0), 
                     this.body.GetPosition()
                 );	
+
+        console.log(this.body.GetPosition());
     }
 
     getCurrentPosition(){
         let pos = this.body.GetPosition();
-        if(isNaN(pos.x) || isNaN(pos.y)){
+        if(isNaN(pos.x)){
             console.log(pos);
-            this.body.setPosition(this.details.x); //HACK?
+            this.body.SetPosition({
+                x: this.details.x, 
+                y: pos.y, 
+                z: pos.z
+            }); //HACK?
         }
         return this.body.GetPosition();
     }
 
     contact(contact, impulse){
-        window.bodiesForRemove.push(this);
-        window.animations.push(
-            new Animation("blast", this.body.GetPosition(), 3, 3, 13, false)
-        );
-        setTimeout(function(){gamemanager.game.turnEnd()}, 500); 
+        this.physics.pushObjectForRemove(this);
+        new Animation("blast", this.body.GetPosition(), 3, 3, 13, false)
     }
 
     draw(context){

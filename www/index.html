@@ -5,7 +5,6 @@
 		<meta charset="utf-8" />
 		<script src="Box2d.min.js"></script>
 		<script src="bodyClass.js"></script>
-		<script src="game.js"></script>
 		<script src="camera.js"></script>
 		<script src="gamemanager.js"></script>
 		<script src="graphics.js"></script>
@@ -52,7 +51,7 @@
 			var bodiesForRemove = []; 	//array of box2d bodies, which we must remove in next frame
 			var animations = [];
 			var translation = 0;		//when screen/window width less then scene, we can move camera left-right. This variable is value of current offset
-			var strength = 0;			//shot strength
+			// var strength = 0;			//shot strength
 			var shootButtonPressed = false;
 			var resources = []; 		//images
 			var gameinfo = {
@@ -90,8 +89,7 @@
 				loadResources();
 				gamemanager = new GameManager(
 					camera,
-					canvas,
-					document.getElementById("battle_button")
+					canvas
 				);
 			};
 			

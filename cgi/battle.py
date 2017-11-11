@@ -226,11 +226,11 @@ class Battle(object):
         """
         self.log.append(
             "type:message, event:stopgame, \
-            reason:connection lost with opponent"
+            reason:Connection lost with opponent"
         )
         initiator.opponent.send_message(
             '{"type":"message", "event":"stopgame", \
-            "reason":"connection lost with opponent"}'
+            "reason":"Connection lost with opponent"}'
         )
         initiator.opponent.initial_state()
         self.status = "end"

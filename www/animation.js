@@ -14,6 +14,8 @@ class Animation{
         this.currentFrame = 0;
         
         this.stop = false;
+
+        window.animations.push(this);
     }
 
     draw(context){
