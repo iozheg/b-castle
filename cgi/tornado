@@ -1,18 +1,8 @@
-
 server{
   listen 80;
   root /home/alex/projects/b-castle/www;
 
-  location / {
-    #root /home/alex/projects/b-castle/www;
+  location /ws/{
+    proxy_pass http://localhost:8888;
   }
 }
-
-server{
-  listen 8888;
-  
-  location /ws/{
-    proxy_pass ws://localhost:8888;
-  }
-}ff
-
