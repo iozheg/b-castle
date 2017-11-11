@@ -9,27 +9,23 @@ class Shoot{
                 (playersPosition.y + Math.sin(angle) * 2).toFixed(5)
             )
         }
-        
-        switch(players[playerIdentity].selectedWeapon){
-            case "cannonball":
-                this.cannonball = new Cannonball(
-                        physics, 
-                        {
-                            x: this.startPosition.x, 
-                            y: this.startPosition.y, 
-                            radius: 0.3, 
-                            shape: "circle", 
-                            kind: "cannonball"
-                        },
-                        resources["cannonball"],
-                        {
-                            angle: angle,
-                            strength: strength,
-                            windForce: windForce
-                        }
-                    );
-                break;
-        }
+
+        this.cannonball = new Cannonball(
+                physics, 
+                {
+                    x: this.startPosition.x, 
+                    y: this.startPosition.y, 
+                    radius: 0.3, 
+                    shape: "circle", 
+                    kind: "cannonball"
+                },
+                resources["cannonball"],
+                {
+                    angle: angle,
+                    strength: strength,
+                    windForce: windForce
+                }
+            );
     }
 
     getStartPosition(){
