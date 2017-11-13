@@ -169,7 +169,7 @@ class Terrain{
      * circle, setting their alpha component to 0.
      * All math equal to collision detection.
      * 
-     * @param {!Object} blastPosition 
+     * @param {!Object} blastPosition {x, y}
      * @param {!number} blastRadius 
      * @memberof Terrain
      */
