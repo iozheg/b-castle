@@ -37,6 +37,14 @@ class World:
         terrain = [0 for _ in range(width)]
         return terrain
 
+    def generate_max_terrain(self):
+        """Return terrain with max values."""
+
+        width = 1800
+        height = 700
+        terrain = [height for _ in range(width)]
+        return terrain
+
     def generate_terrain(self):
         """Generates and returns terrain list.
         
