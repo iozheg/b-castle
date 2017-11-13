@@ -1,11 +1,32 @@
+/**
+ * Manages terrain object.
+ * 
+ * Terrain is ImageData object. It is array of numbers that contains
+ * r, g, b, a components of every pixel. That's why every row size of
+ * image equals image's width * 4.
+ * Terrain's image width less than game scene's width because we need
+ * also place player's on scene. Half of the difference between width
+ * of terrain and width of scene called here 'offset'. This is the
+ * value of the offset from the beginning of the scene where terrain
+ * begins to draw.
+ * 
+ * @class Terrain
+ */
 class Terrain{
+    /**
+     * Creates an instance of Terrain.
+     * @param {!CanvasRenderingContext2D} context 
+     * @param {!Array<number>} terrainLine Array of numbers that
+     *      defines one-dimensional height map .
+     * @memberof Terrain
+     */
     constructor(context, terrainLine){
         this.width = 1800;
         this.height = 700;
         this.offset = 150;
-        //every pixel of imgData contains 4 components: r, g, b, a
         this.rowCapacity = this.width * 4;
         this.imgData = context.createImageData(this.width, this.height);
+        /** Used to draw to canvas. */
         this.imageBitmap = null;
         
         this.terrainLine = new Array(terrainLine.length);
@@ -17,27 +38,32 @@ class Terrain{
             .then(bitmap => this.imageBitmap = bitmap);
     }
 
+    /**
+     * Fills terrain.imgData array accordingly height map.
+     * In depending of height pixels change their color: the higher is
+     * whiter, lower - greener.
+     * 
+     * @memberof Terrain
+     */
     fillTerrain(){
         let peakColor = 230; 	// defines color of terrain's peaks
         let bottomColor = 165; 	// color for the terrain bottom
+        /** Ratio of terrain heigth to total height. */
         let heightCoef = 0;
-        // fill terrain
-        for (let i = 0; i < this.terrainLine.length; i++) {
-            // (this.height - this.terrainLine[i]) 	
-            // - height of current pixel (or row of the current pixel)
-            let index = (this.height - this.terrainLine[i]) 
-                        * this.rowCapacity + i*4; 	
-            // (this.height - this.terrainLine[i]) * this.rowCapacity 	
-            // - this.imgData.data is linear so this is offset because of 
-            // pixel's height (vertical position)            
-            // it's color in addiction to it's height
-            // i*4 - offset because of horizontal position of pixel
 
-            // defines factor of how pixel of terrain changes 
+        for (let i = 0; i < this.terrainLine.length; i++) {
+            /** index - position of pixel in terrain.imgData array.
+            * In ImageData first elements are top of image, last -
+            * bottom, so to find desired row we must substruct
+            * height value of terrainLine from total image height.
+            * i*4 - horizontal pixel position.
+            */
+            let index = (this.height - this.terrainLine[i])
+                        * this.rowCapacity + i*4;
             if(i%5==0)
-                heightCoef = this.terrainLine[i] / this.height; 
-                    
-            let color = { 	// define color for terrain pixels
+                heightCoef = this.terrainLine[i] / this.height;
+            /** Base color of highest pixel in current column. */
+            let color = {
                 r: peakColor * heightCoef,
                 g: heightCoef * (peakColor-bottomColor) + bottomColor,
                 b: peakColor * heightCoef
@@ -48,26 +74,27 @@ class Terrain{
             this.imgData.data[index +2] = color.b;
             this.imgData.data[index +3] = 255;
             
-            // fill all pixel under surface
-            // iterating all pixels under current
+            /** Fill all pixels under the highest in current column. */
             for(let j = 1; j < this.terrainLine[i]; j++){ 	
-                index = index + this.rowCapacity;	    
+                index = index + this.rowCapacity;
+                /** First five pixels in current column have same
+                 * color as highest.
+                 */
                 if(j < 5){
                     this.imgData.data[index +0] = color.r;
                     this.imgData.data[index +1] = color.g;
                     this.imgData.data[index +2] = color.b;
                     this.imgData.data[index +3] = 255;
-                }
-                else{
-                    let internalHeightCoef = (this.terrainLine[i]-j 
-                                            + Math.random()*10)
-                                            / this.height;
+                } else{
+                    let internalHeightCoef = (this.terrainLine[i]-j
+                                                + Math.random()*10)
+                                                / this.height;
                     this.imgData.data[index +0] = peakColor 
                                                     * internalHeightCoef;
-                    this.imgData.data[index +1] = internalHeightCoef 
-                                                    * (peakColor-bottomColor) 
+                    this.imgData.data[index +1] = internalHeightCoef
+                                                    * (peakColor-bottomColor)
                                                     + bottomColor;
-                    this.imgData.data[index +2] = peakColor 
+                    this.imgData.data[index +2] = peakColor
                                                     * internalHeightCoef;
                     this.imgData.data[index +3] = 255;
                 }
@@ -134,19 +161,24 @@ class Terrain{
         return false;
     }
 
+    /**
+     * Makes damage to terrain.
+     * We take circle with radius blastRadius and center in
+     * blastPosition and 'cut' it from terrain. This means that we
+     * make invisible all terrain pixels that lie in and on the
+     * circle, setting their alpha component to 0.
+     * All math equal to collision detection.
+     * 
+     * @param {!Object} blastPosition 
+     * @param {!number} blastRadius 
+     * @memberof Terrain
+     */
     damageTerrain(blastPosition, blastRadius){
         let blastPosOnTerrain = {
             x: blastPosition.x - this.offset,
             y: blastPosition.y
         }
 
-        /** If we have contact than we must 'make damage' to terrain.
-         * We take circle with radius blastRadius and center in
-         * blastPosition and 'cut' it from terrain. This means that we
-         * make invisible all terrain pixels that lie in and on the
-         * circle, setting their alpha component to 0.
-         * All math equal to collision detection.
-         */
         for(let x = -1 * blastRadius + blastPosOnTerrain.x; 
             x <= blastRadius + blastPosOnTerrain.x; 
             x++)
@@ -176,14 +208,29 @@ class Terrain{
                 
         }
         
+        /** Redraw bitmap. */
         this.redrawTerrain();
     }
 
+    /**
+     * Redraws terrain's bitmap.
+     * Redrawing is needed after every terrain change.
+     * 
+     * @memberof Terrain
+     */
     redrawTerrain(){
         createImageBitmap(this.imgData)
             .then(bitmap => this.imageBitmap = bitmap);
     }
 
+    /**
+     * Draws terrain bitmap to context.
+     * 
+     * @param {!CanvasRenderingContext2D} context 
+     * @param {!number} scale 
+     * @param {!number} translation 
+     * @memberof Terrain
+     */
     draw(context, scale, translation){        
     //    console.time("Drawing terrain...");
         context.save();
