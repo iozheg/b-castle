@@ -5,26 +5,49 @@ var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
 var b2Fixture = Box2D.Dynamics.b2Fixture;
 var b2World = Box2D.Dynamics.b2World;
 var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
-
+/**
+ * Manages physic world of game.
+ * 
+ * @class Physics
+ */
 class Physics{
-    constructor(scale, maxStrength, terrain, callbackOnContact){
+    /**
+     * Creates an instance of Physics.
+     * @param {!number} scale The ratio of the dimensions of the canvas
+     *      to the dimension of the physical world.
+     * @param {!Terrain} terrain Terrain object.
+     * @param {!Object} callbackOnContact Object that contains execution
+     *      context (link to GameManager instance) and method that would
+     *      be called when Shell object will contact with something.
+     * @memberof Physics
+     */
+    constructor(scale, terrain, callbackOnContact){
         let gravity = new b2Vec2(0,9.8);
         this.world = new b2World(gravity, true);
         this.scale = scale;
         this.dtRemaining = 0;
         this.stepAmount = 1/100;
-        this.maxStrength = maxStrength;
         this.terrain = terrain;
         this.callContext = callbackOnContact.context;
         this.callbackOnContact = callbackOnContact.callback;
+        /**
+         * This array holds list of objects that must be removed from
+         * scene. Only objects that contain physic bodies pushed to
+         * the array.
+         */
         this.bodiesForRemove = [];
-
-    //    this.isShellContacted = false;
 
         this.collision();   
     }
 
+    /**
+     * Initiates and adds contact listener.
+     * This listen all collisions between physic bodies.
+     * 
+     * @memberof Physics
+     */
     collision(){
+        // Closures for listener function.
         let bodiesForRemove = this.bodiesForRemove;
         let physics = this;
         this.listener = new Box2D.Dynamics.b2ContactListener();
@@ -33,99 +56,66 @@ class Physics{
             var bodyA = contact.GetFixtureA().GetBody().GetUserData(),
                 bodyB = contact.GetFixtureB().GetBody().GetUserData();
             
-            for(i = 0; i < physics.bodiesForRemove.length; i++){
-                //if object is already marked for delete 
-                //than ignore it's collisions
+            /* 
+                If object is already marked for delete than ignore 
+                it's collisions. This prevent multiple collisions for
+                objects that should contact just one time.
+            */
+            for(i = 0; i < physics.bodiesForRemove.length; i++){                
                 if(bodyA == physics.bodiesForRemove[i] 
                     || bodyB == physics.bodiesForRemove[i])
                     return;
-            }
-                    
-            if (bodyA.contact && bodyA instanceof Castle) {
-                bodyA.contact(contact, impulse, true)
+            }     
+            
+            // If Body have contact method than call it.
+            if (bodyA.contact) {
+                bodyA.contact(contact, impulse)
             }
             if (bodyB.contact) {
-                bodyB.contact(contact, impulse, false)
+                bodyB.contact(contact, impulse)
             }
         };
         this.world.SetContactListener(this.listener);
     }
 
+    /**
+     * Tests collision of cannonball with terrain.
+     * Terrain hasn't physical body so we test collisions manually.
+     * First, we check if there collision. If so call cannonball's
+     * contact method, then calculate damage to Terrain and
+     * 'remove' damaged pixels.
+     * 
+     * @param {!Cannonball} cannonball 
+     * @returns 
+     * @memberof Physics
+     */
     terrainCollision(cannonball){
-        let pos = cannonball.body.GetPosition();
-        let contact = false;
-        let blastRadius = 25;
-        let diff = 150; //terrain offset from beginning of canvas
+        let pos = cannonball.getCurrentPosition();
+        let contact = false;        
         let cannonRadius = 3;
+        let blastRadius = 25;
+        /** Cannonball position in canvas coords. */
         let collPos = {
-            x: Math.round(pos.x * this.scale) - diff,
+            x: Math.round(pos.x * this.scale),
             y: Math.round(pos.y * this.scale)
         }
-        
-        if(
-            collPos.x <= 0 
-            || collPos.x >= this.terrain.width 
-            || collPos.y <=0 
-            || collPos.y >= this.terrain.height
-        )
-            return;
-            	
-        for(let x = -1 * cannonRadius + collPos.x; x <= cannonRadius + collPos.x; x++){
-            let y = collPos.y + (
-                            Math.sqrt(
-                                Math.pow(cannonRadius, 2) - Math.pow(x - (collPos.x), 2)
-                            )
-                        )>>0; //y0 + sqrt(R^2 - (x-x0)^2)
-            let y2 = collPos.y - (
-                            Math.sqrt(
-                                Math.pow(cannonRadius, 2) - Math.pow(x - (collPos.x), 2)
-                            )
-                        )>>0;			//y0 - sqrt(R^2 - (x-x0)^2)
-            let index = y * this.terrain.rowCapacity + x * 4;
-            if(this.terrain.imgData.data[index +3] == 255){
-                contact = true;
-                break;
-            }
-            
-            index = y2 * this.terrain.rowCapacity + x * 4;
-            if(this.terrain.imgData.data[index +3] == 255){
-                contact = true;
-                break;
-            }
-        }
+        contact = this.terrain.checkCollision(collPos, cannonRadius);      
         
         if(!contact)
             return;
         
         cannonball.contact();        
-    
-        for(let x = -1 * blastRadius + collPos.x; x <= blastRadius + collPos.x; x++){
-            let y = collPos.y + (
-                        Math.sqrt(
-                            Math.pow(blastRadius, 2) - Math.pow(x - (collPos.x), 2)
-                        )
-                    )>>0; //y0 + sqrt(R^2 - (x-x0)^2)
-            let y2 = collPos.y - (
-                        Math.sqrt(
-                            Math.pow(blastRadius, 2) - Math.pow(x - (collPos.x), 2)
-                        )
-                    )>>0;//y0 - sqrt(R^2 - (x-x0)^2)
-            
-            let index = y * this.terrain.rowCapacity + x * 4;
-            let index2 = y2 * this.terrain.rowCapacity + x * 4;
-            if(index < y * this.terrain.rowCapacity)
-                continue;
-    
-            for(let i = index2; i <=index; ){
-                this.terrain.imgData.data[i +3] = 0;
-                i = i + this.terrain.rowCapacity;
-            }
-                
-        }
-
-        this.terrain.redrawTerrain();
+        this.terrain.damageTerrain(collPos, blastRadius);
     }
 
+    /**
+     * Manages physical world step.
+     * First remove unnecessary physical objects.
+     * b2World.Step calculates physics.
+     * 
+     * @param {!number} dt Seconds passed from last frame.
+     * @memberof Physics
+     */
     step(dt){        
         this.removeObjectsFromWorld();
 
@@ -138,28 +128,47 @@ class Physics{
         }   
     }
 
+    /**
+     * Returns array of physic bodies.
+     * 
+     * @returns Array<b2BodyDef>
+     * @memberof Physics
+     */
     getBodyList(){
         return this.world.GetBodyList();
     }
 
+    /**
+     * Pushes objects that should be removed from scene in array.
+     * Checks if obj is Shell this means that Shell object had
+     * contact with something and we must call GameManager method
+     * that handles this event. Delay in call is needed to play
+     * animation of blasting Shell.
+     * 
+     * @param {!any} obj 
+     * @memberof Physics
+     */
     pushObjectForRemove(obj){
         if(obj instanceof Shell)
             setTimeout(() => this.callbackOnContact.call(this.callContext), 500);
         this.bodiesForRemove.push(obj);
     }
 
+    /**
+     * Removes unnecessary physical bodies from world.
+     * 
+     * @memberof Physics
+     */
     removeObjectsFromWorld(){
-        // while((obj = this.bodiesForRemove.pop())){
-        //     this.world.DestroyBody(obj.body);
-        //     // if(obj instanceof Shell)
-        //     //     setTimeout(function(){gamemanager.turnEnd()}, 500); 
-        //     delete obj;
-        // }
-
         this.bodiesForRemove.forEach( obj => this.world.DestroyBody(obj.body) );
         this.bodiesForRemove = [];
     }
 
+    /**
+     * Removes ALL physical bodies from world.
+     * 
+     * @memberof Physics
+     */
     destroyAllObjects(){
         let obj = this.world.GetBodyList();
         //destroy all physical bodies

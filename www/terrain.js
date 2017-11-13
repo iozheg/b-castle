@@ -2,7 +2,8 @@ class Terrain{
     constructor(context, terrainLine){
         this.width = 1800;
         this.height = 700;
-        //every pixel of imgData contains 4 elements: r, g, b, a
+        this.offset = 150;
+        //every pixel of imgData contains 4 components: r, g, b, a
         this.rowCapacity = this.width * 4;
         this.imgData = context.createImageData(this.width, this.height);
         this.imageBitmap = null;
@@ -74,19 +75,121 @@ class Terrain{
         }
     }
 
+    /**
+     * Checks if object collides with terrain.
+     * 
+     * @param {!any} objPosition 
+     * @param {!number} objRadius 
+     * @returns false if no collision, otherwise true.
+     * @memberof Terrain
+     */
+    checkCollision(objPosition, objRadius){
+        let objPosOnTerrain = {
+            x: objPosition.x - this.offset,
+            y: objPosition.y
+        }
+
+        /** If object is out of terrain then there no collision. */
+        if(
+            objPosOnTerrain.x <= 0 || objPosOnTerrain.x >= this.width 
+            || objPosOnTerrain.y <=0 || objPosOnTerrain.y >= this.height
+        )
+            return false;
+        
+        /** To detect collision we check intersection of circle with
+         * terrain. objRadius is circle radius, objPosOnTerrain -circle
+         * center position.
+         * First calculate position of every pixel of circle using
+         * formula:
+         * (y-y0)^2 + (x-x0)^2 = R^2 => 
+         *          y1 = y0 + sqrt(R^2 - (x-x0)^2)
+         *      and y2 = y0 - sqrt(R^2 - (x-x0)^2),
+         * x0 and y0 - center of circle, R - radius.
+         * For every circle's pixel calculate index in terrain array.
+         * Then check if terrain pixel with this index is 'exists',
+         * that means that it's alpha component must be equal 255.
+         * So if any pixel of circle intersects terrain than we have
+         * contact and we can stop further checking.
+        */
+        for(let x = -1 * objRadius + objPosOnTerrain.x; 
+            x <= objRadius + objPosOnTerrain.x; 
+            x++)
+        {
+            let sqrt = Math.sqrt(
+                Math.pow(objRadius, 2) - Math.pow(x - (objPosOnTerrain.x), 2)
+            );
+            let y1 = objPosOnTerrain.y + (sqrt)>>0;
+            let y2 = objPosOnTerrain.y - (sqrt)>>0;
+
+            let index = y1 * this.rowCapacity + x * 4;
+            if(this.imgData.data[index +3] == 255){
+                return true;
+            }            
+            index = y2 * this.rowCapacity + x * 4;
+            if(this.imgData.data[index +3] == 255){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    damageTerrain(blastPosition, blastRadius){
+        let blastPosOnTerrain = {
+            x: blastPosition.x - this.offset,
+            y: blastPosition.y
+        }
+
+        /** If we have contact than we must 'make damage' to terrain.
+         * We take circle with radius blastRadius and center in
+         * blastPosition and 'cut' it from terrain. This means that we
+         * make invisible all terrain pixels that lie in and on the
+         * circle, setting their alpha component to 0.
+         * All math equal to collision detection.
+         */
+        for(let x = -1 * blastRadius + blastPosOnTerrain.x; 
+            x <= blastRadius + blastPosOnTerrain.x; 
+            x++)
+        {
+            let sqrt = Math.sqrt(
+                Math.pow(blastRadius, 2) - Math.pow(x - (blastPosOnTerrain.x), 2)
+            );
+        
+            let y1 = blastPosOnTerrain.y + (sqrt)>>0;
+            let y2 = blastPosOnTerrain.y - (sqrt)>>0;
+            
+            let index = y1 * this.rowCapacity + x * 4;
+            let index2 = y2 * this.rowCapacity + x * 4;
+            /** When collision happens on left or right border of
+             * terrain due to terrain stored in array some part of
+             * explosion will be transfered on opposite border.
+             * To prevent this we make checks:
+             */
+            if(index < y1 * this.rowCapacity ||
+                index2 >= (y2+1) * this.rowCapacity)
+                continue;
+    
+            for(let i = index2; i <=index; ){
+                this.imgData.data[i +3] = 0;
+                i = i + this.rowCapacity;
+            }
+                
+        }
+        
+        this.redrawTerrain();
+    }
+
     redrawTerrain(){
         createImageBitmap(this.imgData)
             .then(bitmap => this.imageBitmap = bitmap);
     }
 
-    draw(context, scale, translation){
-        
+    draw(context, scale, translation){        
     //    console.time("Drawing terrain...");
         context.save();
-        context.drawImage(this.imageBitmap, translation * scale + 150, 0);
+        context.drawImage(this.imageBitmap, translation * scale + this.offset, 0);
     //    context.putImageData(this.imgData, translation * scale + 150, 0);
         context.restore();        
-    //    console.timeEnd("Drawing terrain...");
-       
+    //    console.timeEnd("Drawing terrain...");       
     }
 }

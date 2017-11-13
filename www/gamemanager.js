@@ -174,7 +174,6 @@ class GameManager{
                 );
         this.physics = new Physics(
                     this.camera.scale,
-                    this.maxStrength,
                     this.terrain,
                     {
                         context: this,
