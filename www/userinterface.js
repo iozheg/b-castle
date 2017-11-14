@@ -12,7 +12,10 @@ class UserInterface{
     constructor(gamemanager){
         this.gamemanager = gamemanager;
         /** Loading animation when player searchs opponent. */
-        this.loading = new LoadingAnimation(resources["loading"]);
+        this.loading = new LoadingAnimation(
+                                resources["loading"],
+                                document.getElementById("helloDialog")
+                            );
         this.battleButton = document.getElementById("battle_button");
 
         this.createInGameMenu();
@@ -39,19 +42,20 @@ class UserInterface{
      * @memberof UserInterface
      */
     startSearch(){
+        let that = this;
         this.playerNick = document.getElementById("P1Nick").value;
 
         this.battleButton.innerHTML = "Stop searching";
         this.battleButton.onclick = function(){
-            this.battleButton.innerHTML = "Battle!";
-            this.loading.hide(document.getElementById("helloDialog"));
-            this.battleButton.onclick = function(){
-                this.startSearch();
+            that.battleButton.innerHTML = "Battle!";
+            that.loading.hide();
+            that.battleButton.onclick = function(){
+                that.startSearch();
                 return false;
             }
             return false;
         }        
-        this.loading.show(document.getElementById("helloDialog"));
+        this.loading.show();
 
         this.gamemanager.startSearch(this.playerNick);
     }
@@ -71,7 +75,7 @@ class UserInterface{
      * @memberof UserInterface
      */
     gameStarted(){
-        this.loading.hide(document.getElementById("helloDialog"));        
+        this.loading.hide();        
         document.getElementById("helloDialog").style.display = "none";	//hide menu
         document.getElementById("fade").style.display = "none";        
         this.inGameMenu.style.display = "block";
@@ -99,7 +103,7 @@ class UserInterface{
                 return false;
             }
         }
-        this.loading.hide(document.getElementById("helloDialog"));
+        this.loading.hide();
         this.inGameMenu.style.display = "none";
         document.getElementById("helloDialog").style.display = "block";
         document.getElementById("fade").style.display = "block";
