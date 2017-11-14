@@ -1,8 +1,21 @@
+/**
+ * Manages physic body of player's castle.
+ * 
+ * @class Castle
+ */
 class Castle{
+    /**
+     * Creates an instance of Castle.
+     * @param {!Physics} physics 
+     * @param {!Object} details Physic body properties: position,
+     *      image, dimentions.
+     * @param {!string} playerIdentity 
+     * @param {!string} playerNick 
+     * @memberof Castle
+     */
     constructor(physics, details, playerIdentity, playerNick){
         this.playerIdentity = playerIdentity;
-        this.playerNick = playerNick;
-        
+        this.playerNick = playerNick;        
         this.details = details;
      
         // Create the definition
@@ -33,18 +46,20 @@ class Castle{
         this.body.CreateFixture(this.fixtureDef);
     }
 
+    /**
+     * Draws castle to context.
+     * 
+     * @param {!CanvasRenderingContext2D} context 
+     * @memberof Castle
+     */
     draw(context) {
-        var pos = this.body.GetPosition(),
+        let pos = this.body.GetPosition(),
             angle = this.body.GetAngle();
         
-        // Save the context
         context.save();
-     
-        // Translate and rotate
         context.translate(pos.x, pos.y);
         context.rotate(angle);
-        
-        // Draw the shape outline if the shape has a color
+
         context.drawImage(
                 resources["castle"], 
                 -this.details.width / 2, 
@@ -56,9 +71,17 @@ class Castle{
         context.restore();
     };
     
+    
+    /**
+     * Handles contact event.
+     * If castle contacted with cannonball than send signal to server.
+     * 
+     * @param {!Box2D Object} contact 
+     * @param {!Box2D Object} impulse 
+     * @memberof Castle
+     */
     contact(contact, impulse){
-        var kind = contact.GetFixtureB().GetBody().GetUserData().details.kind;
-        //check that cannonball collides castle
+        let kind = contact.GetFixtureB().GetBody().GetUserData().details.kind;
         if(kind == "cannonball"){ 
             gamemanager.messageHandler.sendMessage(
                         "gamemsg", 

@@ -6,7 +6,7 @@
 class Camera{
     /**
      * Creates an instance of Camera.
-     * @param {!DOMElement} canvas 
+     * @param {!HTMLCanvasElement} canvas 
      * @memberof Camera
      */
     constructor(canvas){

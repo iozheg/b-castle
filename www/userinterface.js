@@ -1,13 +1,28 @@
+/**
+ * Manages user inteface.
+ * 
+ * @class UserInterface
+ */
 class UserInterface{
+    /**
+     * Creates an instance of UserInterface.
+     * @param {!GameManager} gamemanager 
+     * @memberof UserInterface
+     */
     constructor(gamemanager){
         this.gamemanager = gamemanager;
-        
+        /** Loading animation when player searchs opponent. */
         this.loading = new LoadingAnimation(resources["loading"]);
         this.battleButton = document.getElementById("battle_button");
 
         this.createInGameMenu();
     }
 
+    /**
+     * Handles ui behaviour when client registered on server.
+     * 
+     * @memberof UserInterface
+     */
     registered(){
         this.inGameMenu.style.display = "none";
 
@@ -18,6 +33,11 @@ class UserInterface{
         }
     }
 
+    /**
+     * Handles ui behaviour when client starts searching opponent.
+     * 
+     * @memberof UserInterface
+     */
     startSearch(){
         this.playerNick = document.getElementById("P1Nick").value;
 
@@ -36,10 +56,20 @@ class UserInterface{
         this.gamemanager.startSearch(this.playerNick);
     }
 
+    /**
+     * Handles ui behaviour when client stops searching opponent.
+     * 
+     * @memberof UserInterface
+     */
     stopSearch(){
         this.gamemanager.stopSearch();
     }
 
+    /**
+     * Handles ui behaviour when battle starts.
+     * 
+     * @memberof UserInterface
+     */
     gameStarted(){
         this.loading.hide(document.getElementById("helloDialog"));        
         document.getElementById("helloDialog").style.display = "none";	//hide menu
@@ -47,15 +77,22 @@ class UserInterface{
         this.inGameMenu.style.display = "block";
     }
 
+    /**
+     * Handles ui behaviour when game stopped by some reason.
+     * If reason 'connetion' then game stopped because connection with
+     * server was lost.
+     * 
+     * @param {!string} reason 
+     * @memberof UserInterface
+     */
     gameStopped(reason){
-        if(reason == "connection"){ //if reason of game stop - connection with server lost
+        if(reason == "connection"){
             this.battleButton.innerHTML = "Reconnect";
             this.battleButton.onclick = function(){
                 location.reload();
                 return false;
             }
-        }
-        else{	//if reason - any other
+        } else{
             this.battleButton.innerHTML = "Battle!";
             this.battleButton.onclick = () => {
                 this.startSearch("Battle!");
@@ -68,6 +105,11 @@ class UserInterface{
         document.getElementById("fade").style.display = "block";
     }
 
+    /**
+     * Creates ingame menu.
+     * 
+     * @memberof UserInterface
+     */
     createInGameMenu(){
         this.inGameMenu = document.createElement("div");
         this.menuButton = document.createElement("button");
@@ -91,30 +133,54 @@ class UserInterface{
         }
     }
 
+    /**
+     * Shows ingame menu.
+     * 
+     * @memberof UserInterface
+     */
     showMenu(){
         this.menuButton.style.display = "none";
         this.inGameMenu.appendChild(this.surrenderButton);
         this.inGameMenu.appendChild(this.menuBackButton);
     }
 
+    /**
+     * Hides ingame menu.
+     * 
+     * @memberof UserInterface
+     */
     hideMenu(){
         this.inGameMenu.removeChild(this.surrenderButton);
         this.inGameMenu.removeChild(this.menuBackButton);
         this.menuButton.style.display = "block";
     }
 
+    /**
+     * Draws ui in context.
+     * Draws player's nick, health points indicator, shoot strength
+     * indocator, turn timer.
+     * 
+     * @param {!CanvasRenderingContext2D} context 
+     * @param {!number} width 
+     * @param {!number} scale 
+     * @param {!number} translation 
+     * @param {!number} strength Current shoot strength.
+     * @param {!number} maxStrength 
+     * @param {!string} thisPlayer This player.
+     * @param {!string} currentPlayer Current active player.
+     * @memberof UserInterface
+     */
     draw(context, width, scale, translation, strength, maxStrength, thisPlayer, currentPlayer){
         for(let p in players){
             let position = players[p].getCastlePosition();
             
-            context.save();
-            
+            context.save();            
             context.translate(
                 (position.x + translation) * scale, 
                 position.y * scale
             );
             
-            //your nick is red
+            /** This player's nick has red color. */
             if(thisPlayer == players[p].identity)
                 context.fillStyle="#FF0000";
             else
@@ -122,14 +188,13 @@ class UserInterface{
             
                     
             context.font="10px 'Press Start 2P'";
-            //show nick
             context.fillText(players[p].nick, -40, -70);	
             context.scale(scale, scale);
             context.fillStyle="#00FF00";
-            //show remaining HP (green)
+            /** Remaining HP has green color. */
             context.fillRect(-2, -3, 4*players[p].HP/100, 0.2);	
             context.fillStyle="#FF0000";
-            //show damage (red)
+            /** Lost HP has red color. */
             context.fillRect(
                         -2+4*players[p].HP/100, 
                         -3, 
@@ -137,8 +202,7 @@ class UserInterface{
                         0.2
                     ); 
             
-            // Current player has indicator of shoot strength 
-            // (when holding shoot button).
+            /** Only active player can have shoot strength indicator. */
             if(currentPlayer == players[p].identity){
                 context.fillStyle="#0000dd";
                 context.fillRect(
@@ -152,7 +216,10 @@ class UserInterface{
             context.restore();
             context.save();
             
-            //show timer
+            /**
+             * Draw timer. When less then 5 seconds left it became red
+             * color.
+             */
             let timeLefted = 30 - gamemanager.elapsedTurnTime>>0;
             if(timeLefted < 0)
                 timeLefted = 0;
@@ -160,8 +227,9 @@ class UserInterface{
             if(timeLefted > 5)
                 context.fillStyle="black";
             else
-                context.fillStyle="#FF0000"; //if less than 5 sec then timer is red
-            context.fillText(timeLefted, (width+40) / 2, scale*2); // 40 - offset in pixels to center timer
+                context.fillStyle="#FF0000";
+            /* 40 - offset in pixels to center timer on screen. */
+            context.fillText(timeLefted, (width+40) / 2, scale*2);
             
             context.restore();
         }
