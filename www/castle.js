@@ -1,5 +1,7 @@
 /**
  * Manages physic body of player's castle.
+ * Castle responsible for physical object and sprite. It 'represents'
+ * player on scene. It handles all collisions and can be damaged.
  * 
  * @class Castle
  */
