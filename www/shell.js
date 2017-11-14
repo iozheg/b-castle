@@ -5,7 +5,18 @@ var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
 var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
 var b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
 
+/**
+ * Manages physic body of shot.
+ * 
+ * @class Shell
+ */
 class Shell{
+    /**
+     * Creates an instance of Shell.
+     * @param {!b2World} world 
+     * @param {!Object} details 
+     * @memberof Shell
+     */
     constructor(world, details){
         
         // Create the definition
